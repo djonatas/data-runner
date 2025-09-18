@@ -1,0 +1,100 @@
+{
+  "defaultDuckDbPath": "./data/warehouse.duckdb",
+  "connections": [
+    {
+      "name": "POSTGRES_EXAMPLE",
+      "type": "postgres",
+      "params": {
+        "host": "your-postgres-sql-host.example.com",
+        "port": 5432,
+        "database": "your_database_name",
+        "user": "your_username",
+        "password": "your_password",
+        "schema": "your_schema"
+      }
+    },
+    {
+      "name": "sqlite_dev",
+      "type": "sqlite",
+      "params": {
+        "filepath": "./data/dev.sqlite"
+      }
+    },
+    {
+      "name": "mysql_analytics",
+      "type": "mysql",
+      "params": {
+        "host": "localhost",
+        "port": 3306,
+        "database": "analytics",
+        "user": "analytics_user",
+        "password": "analytics_pass",
+        "schema": "analytics"
+      }
+    },
+    {
+      "name": "mssql_warehouse",
+      "type": "mssql",
+      "params": {
+        "host": "localhost",
+        "port": 1433,
+        "database": "warehouse",
+        "user": "warehouse_user",
+        "password": "warehouse_pass",
+        "schema": "dbo"
+      }
+    },
+    {
+      "name": "oracle_erp",
+      "type": "oracle",
+      "params": {
+        "host": "your-oracle-host.example.com",
+        "port": 1521,
+        "database": "XE",
+        "user": "your_oracle_user",
+        "password": "your_oracle_password",
+        "schema": "HR"
+      }
+    },
+    {
+      "name": "oracle_tns_erp",
+      "type": "oracle",
+      "params": {
+        "database": "ERP_PROD",
+        "user": "your_oracle_user",
+        "password": "your_oracle_password",
+        "schema": "HR"
+      }
+    },
+    {
+      "name": "csv_products",
+      "type": "csv",
+      "params": {
+        "csv_file": "./data/products.csv",
+        "csv_separator": ",",
+        "csv_encoding": "utf-8",
+        "csv_has_header": true
+      }
+    },
+    {
+      "name": "csv_customers",
+      "type": "csv",
+      "params": {
+        "csv_file": "./data/customers.csv",
+        "csv_separator": ";",
+        "csv_encoding": "latin-1",
+        "csv_has_header": true
+      }
+    },
+    {
+      "name": "csv_sales",
+      "type": "csv",
+      "params": {
+        "csv_file": "./data/sales_data.csv",
+        "csv_separator": ",",
+        "csv_encoding": "utf-8",
+        "csv_has_header": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "variables": {
+    "start_date": {
+      "value": "2024-01-01",
+      "type": "string",
+      "description": "Data de início para filtros de período"
+    },
+    "end_date": {
+      "value": "2024-12-31",
+      "type": "string",
+      "description": "Data de fim para filtros de período"
+    },
+    "min_amount": {
+      "value": 100.0,
+      "type": "number",
+      "description": "Valor mínimo para filtros de valor"
+    },
+    "active_only": {
+      "value": true,
+      "type": "boolean",
+      "description": "Filtrar apenas registros ativos"
+    },
+    "person_uid": {
+      "value": "your-person-uid-here",
+      "type": "string",
+      "description": "UID da pessoa para consultas específicas"
+    },
+    "tenant_uid": {
+      "value": "your-person-uid-here",
+      "type": "string",
+      "description": "UID da pessoa para consultas específicas"
+    }
+  },
+  "jobs": [
+    {
+      "queryId": "active_in_people",
+      "type": "carga",
+      "connection": "POSTGRES_EXAMPLE",
+      "sql": "select * from people where status = 'active' and tenant_uid = ${var:tenant_uid};",
+      "targetTable": "active_in_people"
+    },
+    {
+      "queryId": "customers_mismatch",
+      "type": "batimento",
+      "connection": "sqlite_dev",
+      "sql": "SELECT c.id, c.email FROM customers c LEFT JOIN crm_customers crm ON crm.id = c.id WHERE crm.id IS NULL;"
+    },
+    {
+      "queryId": "products_daily_sync",
+      "type": "carga",
+      "connection": "mysql_analytics",
+      "sql": "SELECT product_id, name, price, category, updated_at FROM products WHERE updated_at >= ${var:start_date} AND updated_at <= ${var:end_date} AND price >= ${var:min_amount};",
+      "targetTable": "stg_products"
+    },
+    {
+      "queryId": "sales_validation",
+      "type": "batimento",
+      "connection": "mssql_warehouse",
+      "sql": "SELECT s.sale_id, s.amount, s.date FROM sales s WHERE s.amount < ${var:min_amount} OR s.date > ${var:end_date};"
+    },
+    {
+      "queryId": "oracle_hr_data",
+      "type": "carga",
+      "connection": "oracle_erp",
+      "sql": "SELECT employee_id, first_name, last_name, hire_date, department_id FROM employees WHERE hire_date >= DATE '${var:start_date}' AND hire_date <= DATE '${var:end_date}';",
+      "targetTable": "stg_oracle_employees"
+    },
+    {
+      "queryId": "oracle_tns_financial_data",
+      "type": "carga",
+      "connection": "oracle_tns_erp",
+      "sql": "SELECT account_id, account_name, balance, last_updated FROM financial_accounts WHERE last_updated >= DATE '${var:start_date}';",
+      "targetTable": "stg_oracle_financial"
+    },
+    {
+      "queryId": "user_activity_summary",
+      "type": "carga",
+      "connection": "BRM_EXAMPLE",
+      "sql": "SELECT user_id, COUNT(*) as activity_count, MAX(created_at) as last_activity FROM user_activities WHERE created_at >= ${var:start_date} AND created_at <= ${var:end_date} AND ${var:active_only} = true GROUP BY user_id;",
+      "targetTable": "stg_user_activity"
+    },
+    {
+      "queryId": "env_var_example",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT '${env:USER}' as current_user, '${env:HOME}' as home_dir, datetime('now') as current_time;",
+      "targetTable": "stg_env_test"
+    },
+    {
+      "queryId": "variables_demo",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT '${var:start_date}' as start_date, '${var:end_date}' as end_date, ${var:min_amount} as min_amount, ${var:active_only} as active_only, '${var:person_uid}' as person_uid, datetime('now') as current_time;",
+      "targetTable": "stg_variables_demo"
+    },
+    {
+      "queryId": "load_products_csv",
+      "type": "carga",
+      "connection": "csv_products",
+      "targetTable": "stg_products"
+    },
+    {
+      "queryId": "load_customers_csv",
+      "type": "carga",
+      "connection": "csv_customers",
+      "targetTable": "stg_customers"
+    },
+    {
+      "queryId": "load_sales_csv",
+      "type": "carga",
+      "connection": "csv_sales",
+      "targetTable": "stg_sales"
+    },
+    {
+      "queryId": "transform_products",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT id, UPPER(name) as name, price, category, CASE WHEN active = 'true' THEN 1 ELSE 0 END as is_active FROM stg_products;",
+      "targetTable": "dim_products",
+      "dependencies": ["load_products_csv"]
+    },
+    {
+      "queryId": "transform_customers",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT id, UPPER(name) as name, email, UPPER(city) as city, registration_date FROM stg_customers;",
+      "targetTable": "dim_customers",
+      "dependencies": ["load_customers_csv"]
+    },
+    {
+      "queryId": "create_sales_fact",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT s.sale_id, s.customer_id, s.product_id, s.quantity, s.total_amount, s.sale_date, c.name as customer_name, p.name as product_name FROM stg_sales s JOIN stg_customers c ON s.customer_id = c.id JOIN stg_products p ON s.product_id = p.id;",
+      "targetTable": "fact_sales",
+      "dependencies": ["load_sales_csv", "load_customers_csv", "load_products_csv"]
+    },
+    {
+      "queryId": "create_daily_summary",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT DATE(sale_date) as date, COUNT(*) as total_sales, SUM(total_amount) as total_revenue, AVG(total_amount) as avg_sale_value FROM stg_sales GROUP BY DATE(sale_date) ORDER BY date;",
+      "targetTable": "summary_daily_sales",
+      "dependencies": ["load_sales_csv"]
+    },
+    {
+      "queryId": "create_product_summary",
+      "type": "carga",
+      "connection": "sqlite_dev",
+      "sql": "SELECT p.category, COUNT(s.sale_id) as total_sales, SUM(s.total_amount) as total_revenue, AVG(s.total_amount) as avg_sale_value FROM stg_products p LEFT JOIN stg_sales s ON p.id = s.product_id GROUP BY p.category ORDER BY total_revenue DESC;",
+      "targetTable": "summary_product_category",
+      "dependencies": ["load_products_csv", "load_sales_csv"]
+    },
+    {
+      "queryId": "final_validation",
+      "type": "batimento",
+      "connection": "sqlite_dev",
+      "sql": "SELECT 'Data Quality Check' as check_type, CASE WHEN COUNT(*) > 0 THEN 'PASS' ELSE 'FAIL' END as status FROM fact_sales WHERE total_amount <= 0 OR quantity <= 0;",
+      "dependencies": ["create_sales_fact"]
+    }
+  ]
+}
