@@ -9,7 +9,7 @@ Data-Runner é uma ferramenta Python avançada que permite executar consultas SQ
 - **Configuração via JSON**: Defina conexões e jobs através de arquivos JSON simples
 - **Múltiplos bancos suportados**: PostgreSQL, SQLite, MySQL, MSSQL, Oracle, CSV
 - **Persistência DuckDB**: Todos os resultados salvos localmente para análise
-- **Tipos de job**: Carga (dados) e Batimento (validação)
+- **Tipos de job**: Carga (dados), Batimento (validação) e Export-CSV (exportação)
 - **Auditoria completa**: Rastreamento de todas as execuções
 - **CLI intuitiva**: Interface de linha de comando fácil de usar
 - **SQL parametrizado**: Suporte a variáveis de ambiente no SQL
@@ -507,6 +507,117 @@ Linhas: 156
 > - `audit_jobs_runs` - Variação do nome
 > - `audit_job_run` - Variação do nome
 > - `audit_jobs_run` - Variação do nome
+
+## 🚀 Funcionalidades Avançadas
+
+### 📤 Jobs Export-CSV
+
+O Data-Runner suporta jobs do tipo `export-csv` que executam queries e exportam os resultados diretamente para arquivos CSV, com suporte completo a dependências.
+
+#### Configuração de Job Export-CSV
+
+```json
+{
+  "queryId": "export_sales_report",
+  "type": "export-csv",
+  "connection": "sqlite_dev",
+  "sql": "SELECT s.sale_id, p.name as product_name, c.name as customer_name, s.quantity, s.unit_price, s.total_amount, s.sale_date FROM fact_sales s LEFT JOIN stg_products p ON s.product_id = p.id LEFT JOIN stg_customers c ON s.customer_id = c.id WHERE s.sale_date >= DATE '${var:start_date}' ORDER BY s.sale_date DESC;",
+  "csv_file": "sales_report_${var:start_date}.csv",
+  "csv_separator": ",",
+  "csv_encoding": "utf-8",
+  "csv_include_header": true,
+  "dependencies": ["create_sales_fact"]
+}
+```
+
+#### Parâmetros do Export-CSV
+
+| Parâmetro | Obrigatório | Padrão | Descrição |
+|-----------|-------------|--------|-----------|
+| `queryId` | ✅ | - | Identificador único do job |
+| `type` | ✅ | - | Deve ser `"export-csv"` |
+| `connection` | ✅ | - | Nome da conexão para executar a query |
+| `sql` | ✅ | - | Query SQL para executar |
+| `csv_file` | ✅ | - | Nome do arquivo CSV de saída |
+| `csv_separator` | ❌ | `","` | Separador do CSV |
+| `csv_encoding` | ❌ | `"utf-8"` | Encoding do arquivo |
+| `csv_include_header` | ❌ | `true` | Se inclui cabeçalho |
+| `dependencies` | ❌ | `[]` | Lista de jobs dependentes |
+
+#### Exemplos Práticos
+
+**Export com separador personalizado:**
+```json
+{
+  "queryId": "export_product_analysis",
+  "type": "export-csv",
+  "connection": "sqlite_dev",
+  "sql": "SELECT category, COUNT(*) as product_count, AVG(price) as avg_price FROM stg_products GROUP BY category;",
+  "csv_file": "product_analysis.csv",
+  "csv_separator": ";",
+  "csv_encoding": "utf-8",
+  "csv_include_header": true,
+  "dependencies": ["load_products_csv"]
+}
+```
+
+**Export com múltiplas dependências:**
+```json
+{
+  "queryId": "export_customer_summary",
+  "type": "export-csv",
+  "connection": "sqlite_dev",
+  "sql": "SELECT c.name, c.email, COUNT(s.sale_id) as total_purchases, SUM(s.total_amount) as total_spent FROM stg_customers c LEFT JOIN fact_sales s ON c.id = s.customer_id GROUP BY c.id;",
+  "csv_file": "customer_summary.csv",
+  "dependencies": ["load_customers_csv", "create_sales_fact"]
+}
+```
+
+#### Execução de Jobs Export-CSV
+
+```bash
+# Executar job único
+data-runner run --id "export_sales_report"
+
+# Executar pipeline com dependências
+data-runner run-batch "load_customers_csv,create_sales_fact,export_customer_summary"
+
+# Via script
+./run.sh run "export_sales_report"
+```
+
+#### Retorno Esperado
+
+```
+🚀 Data-Runner - Executando Job
+================================
+📋 Job: export_sales_report
+🔗 Conexão: sqlite_dev (sqlite)
+📊 Tipo: export-csv
+🎯 Arquivo CSV: sales_report_2024-01-01.csv
+
+⏳ Executando query...
+✅ Query executada com sucesso!
+📈 Resultados: 1,247 linhas processadas
+💾 Dados exportados para: data/sales_report_2024-01-01.csv
+
+🎯 Execução Concluída:
+Run ID: 550e8400-e29b-41d4-a716-446655440000
+Status: success
+Linhas processadas: 1247
+Tabela alvo: N/A
+Arquivo CSV: data/sales_report_2024-01-01.csv
+✅ Execução bem-sucedida!
+```
+
+#### Vantagens dos Jobs Export-CSV
+
+- ✅ **Dependências**: Aguarda execução de jobs de carga
+- ✅ **Variáveis**: Suporte completo a variáveis dinâmicas
+- ✅ **Configurável**: Separador, encoding e cabeçalho personalizáveis
+- ✅ **Auditoria**: Rastreamento completo de execuções
+- ✅ **Integração**: Funciona com todos os tipos de conexão
+- ✅ **Flexível**: Permite qualquer query SQL complexa
 
 ## 📁 Estrutura do Projeto
 
