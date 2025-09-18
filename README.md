@@ -485,6 +485,29 @@ data-runner drop-table --table "tabela_inexistente"
 ❌ Tabela 'tabela_inexistente' não encontrada
 ```
 
+**Tentativa de remover tabela protegida:**
+
+```bash
+data-runner drop-table --table "audit_job_runs"
+```
+
+**Retorno esperado:**
+
+```
+🗑️ Remoção de Tabela
+==================================================
+Tabela: audit_job_runs
+Linhas: 156
+
+🚫 Não é possível remover a tabela 'audit_job_runs' - é uma tabela protegida do sistema
+```
+
+> **⚠️ Tabelas Protegidas:**
+> - `audit_job_runs` - Tabela de auditoria do sistema
+> - `audit_jobs_runs` - Variação do nome
+> - `audit_job_run` - Variação do nome
+> - `audit_jobs_run` - Variação do nome
+
 ## 📁 Estrutura do Projeto
 
 ```

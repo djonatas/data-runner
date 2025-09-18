@@ -216,10 +216,15 @@ drop_table() {
     log_run "Removendo tabela: $table_name"
     echo ""
     
-    if data-runner drop-table --table "$table_name" --confirm; then
+    if data-runner drop-table --table "$table_name" --confirm 2>&1; then
         log_success "Tabela '$table_name' removida com sucesso!"
     else
-        log_error "Erro ao remover tabela '$table_name'"
+        # Verificar se é erro de tabela protegida
+        if data-runner drop-table --table "$table_name" --confirm 2>&1 | grep -q "tabela protegida"; then
+            log_error "Não é possível remover tabelas do sistema (audit_job_runs)"
+        else
+            log_error "Erro ao remover tabela '$table_name'"
+        fi
         return 1
     fi
 }
@@ -325,7 +330,15 @@ run_direct() {
                 log_warning "⚠️  ATENÇÃO: Esta operação irá remover permanentemente a tabela '$2'"
                 read -p "Tem certeza? Digite 'SIM' para confirmar: " confirmation
                 if [ "$confirmation" = "SIM" ]; then
-                    data-runner drop-table --table "$2" --confirm
+                    if data-runner drop-table --table "$2" --confirm 2>&1; then
+                        log_success "Tabela '$2' removida com sucesso!"
+                    else
+                        if data-runner drop-table --table "$2" --confirm 2>&1 | grep -q "tabela protegida"; then
+                            log_error "Não é possível remover tabelas do sistema (audit_job_runs)"
+                        else
+                            log_error "Erro ao remover tabela '$2'"
+                        fi
+                    fi
                 else
                     log_info "Operação cancelada"
                 fi
