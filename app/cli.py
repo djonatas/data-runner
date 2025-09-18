@@ -227,5 +227,49 @@ def inspect(table: Optional[str]):
         click.echo(f"❌ Erro na inspeção: {e}", err=True)
 
 
+@cli.command()
+@click.option('--table', 'table_name', required=True, help='Nome da tabela para remover')
+@click.option('--confirm', is_flag=True, help='Confirma a remoção sem pedir confirmação interativa')
+def drop_table(table_name: str, confirm: bool):
+    """Remove uma tabela específica do DuckDB"""
+    try:
+        runner = JobRunner()
+        runner.load_configs()
+        
+        if not runner.repository:
+            click.echo("❌ Repositório não inicializado", err=True)
+            return
+        
+        # Verificar se tabela existe
+        info_df = runner.repository.get_table_info(table_name)
+        if 'error' in info_df.columns:
+            click.echo(f"❌ Tabela '{table_name}' não encontrada")
+            return
+        
+        # Mostrar informações da tabela antes de remover
+        row_count = runner.repository.get_table_row_count(table_name)
+        click.echo(f"\n🗑️  Remoção de Tabela")
+        click.echo("=" * 50)
+        click.echo(f"Tabela: {table_name}")
+        click.echo(f"Linhas: {row_count}")
+        
+        # Confirmar remoção
+        if not confirm:
+            if not click.confirm(f"\n⚠️  Tem certeza que deseja remover a tabela '{table_name}'?"):
+                click.echo("❌ Operação cancelada")
+                return
+        
+        # Remover tabela
+        success = runner.repository.drop_table(table_name)
+        
+        if success:
+            click.echo(f"✅ Tabela '{table_name}' removida com sucesso!")
+        else:
+            click.echo(f"❌ Erro ao remover tabela '{table_name}'")
+    
+    except Exception as e:
+        click.echo(f"❌ Erro ao remover tabela: {e}", err=True)
+
+
 if __name__ == '__main__':
     cli()

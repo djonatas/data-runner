@@ -188,6 +188,36 @@ class DuckDBRepository:
             result = conn.execute(sql).fetchall()
             return [row[0] for row in result]
     
+    def drop_table(self, table_name: str) -> bool:
+        """
+        Remove uma tabela do DuckDB
+        
+        Args:
+            table_name: Nome da tabela para remover
+            
+        Returns:
+            True se tabela foi removida com sucesso
+        """
+        with duckdb.connect(self.db_path) as conn:
+            try:
+                # Verifica se tabela existe
+                check_sql = """
+                SELECT COUNT(*) as count 
+                FROM information_schema.tables 
+                WHERE table_name = ?
+                """
+                result = conn.execute(check_sql, (table_name,)).fetchone()
+                
+                if result[0] == 0:
+                    return False
+                
+                # Remove a tabela
+                conn.execute(f"DROP TABLE {table_name}")
+                return True
+                
+            except Exception:
+                return False
+
     def test_connection(self) -> bool:
         """
         Testa conexão com DuckDB
