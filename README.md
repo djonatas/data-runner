@@ -641,9 +641,6 @@ data-runner/
 │   ├── jobs.json.example        # Exemplo de jobs
 │   └── README.md                # Documentação de configuração
 ├── data/
-│   ├── products.csv             # Dados de exemplo
-│   ├── customers.csv            # Dados de exemplo
-│   ├── sales_data.csv           # Dados de exemplo
 │   └── warehouse.duckdb         # Banco DuckDB (criado automaticamente)
 ├── tests/
 │   ├── test_config_parsing.py
@@ -1360,17 +1357,13 @@ Para informações detalhadas sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md
 
 ### Erro de Conexão
 
-```bash
+````bash
 # Via scripts (mais fácil)
 ./run.sh list
 ./test.sh config
 
 # Via CLI tradicional
 data-runner list-jobs
-
-# Testar conexão específica
-python -c "from app.connections import ConnectionFactory; from app.types import Connection, ConnectionType, ConnectionParams; conn = Connection('test', ConnectionType.SQLITE, ConnectionParams(filepath='./test.db')); db_conn = ConnectionFactory.create_connection(conn); print(db_conn.test_connection())"
-```
 
 ### Erro de SQL
 
@@ -1383,7 +1376,7 @@ data-runner run --id problematic_job --dry-run
 
 # Verificar logs detalhados
 python -m app run --id problematic_job --verbose
-```
+````
 
 ### Problemas com DuckDB
 
