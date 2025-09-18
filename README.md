@@ -803,7 +803,6 @@ python -m app history --query-id orders_full_load
 python -m app inspect --table stg_orders
 ```
 
-
 ## 🗄️ Estrutura do DuckDB
 
 ### Tabela de Auditoria (`audit_job_runs`)
