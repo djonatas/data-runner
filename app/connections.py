@@ -479,8 +479,19 @@ class ConnectionFactory:
         if connection.type not in cls._connection_classes:
             raise ValueError(f"Tipo de conexão não suportado: {connection.type}")
         
+        # Processar variáveis de ambiente nos parâmetros da conexão
+        from .env_processor import EnvironmentVariableProcessor
+        env_processor = EnvironmentVariableProcessor()
+        
+        # Converter params para dict, processar variáveis e criar nova instância
+        params_dict = connection.params.__dict__.copy()
+        processed_params = env_processor.process_dict(params_dict)
+        
+        # Criar nova instância de ConnectionParams com valores processados
+        processed_params_obj = connection.params.__class__(**processed_params)
+        
         connection_class = cls._connection_classes[connection.type]
-        return connection_class(connection.params)
+        return connection_class(processed_params_obj)
     
     @classmethod
     def get_supported_types(cls) -> list:
