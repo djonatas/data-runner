@@ -2,7 +2,7 @@
 Tipos e contratos para o sistema Data-Runner
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Union
 from enum import Enum
 import uuid
@@ -124,10 +124,19 @@ class ConnectionsConfig:
 
 
 @dataclass
+class JobGroup:
+    """Grupo de jobs para execução em sequência"""
+    name: str
+    description: Optional[str] = None
+    job_ids: List[str] = field(default_factory=list)
+
+
+@dataclass
 class JobsConfig:
     """Configuração de jobs"""
     jobs: List[Job]
     variables: Optional[Dict[str, Variable]] = None
+    job_groups: Optional[Dict[str, JobGroup]] = None
 
 
 @dataclass

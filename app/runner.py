@@ -10,7 +10,7 @@ import logging
 
 from .types import (
     Job, JobRun, JobType, JobStatus, Connection, ConnectionsConfig, 
-    JobsConfig, ExecutionOptions, Variable, VariableType
+    JobsConfig, ExecutionOptions, Variable, VariableType, JobGroup
 )
 from .connections import ConnectionFactory
 from .repository import DuckDBRepository
@@ -147,7 +147,19 @@ class JobRunner:
                 )
                 variables[var_name] = variable
         
-        return JobsConfig(jobs=jobs, variables=variables)
+        # Carregar grupos de jobs se existirem
+        job_groups = None
+        if "job_groups" in data:
+            job_groups = {}
+            for group_name, group_data in data["job_groups"].items():
+                job_group = JobGroup(
+                    name=group_name,
+                    description=group_data.get("description"),
+                    job_ids=group_data.get("job_ids", [])
+                )
+                job_groups[group_name] = job_group
+        
+        return JobsConfig(jobs=jobs, variables=variables, job_groups=job_groups)
     
     def get_job(self, query_id: str) -> Optional[Job]:
         """Obtém job por query_id"""
@@ -158,6 +170,43 @@ class JobRunner:
             if job.query_id == query_id:
                 return job
         return None
+    
+    def get_job_group(self, group_name: str) -> Optional[JobGroup]:
+        """Obtém grupo de jobs por nome"""
+        if not self.jobs_config or not self.jobs_config.job_groups:
+            return None
+        
+        return self.jobs_config.job_groups.get(group_name)
+    
+    def list_job_groups(self) -> List[JobGroup]:
+        """Lista todos os grupos de jobs disponíveis"""
+        if not self.jobs_config or not self.jobs_config.job_groups:
+            return []
+        
+        return list(self.jobs_config.job_groups.values())
+    
+    def run_job_group(self, group_name: str, options: ExecutionOptions = None) -> List[JobRun]:
+        """Executa um grupo de jobs em sequência"""
+        if options is None:
+            options = ExecutionOptions()
+        
+        # Carregar configs se necessário
+        if not self.jobs_config:
+            self.load_configs()
+        
+        # Obter grupo
+        job_group = self.get_job_group(group_name)
+        if not job_group:
+            raise ValueError(f"Grupo de jobs não encontrado: {group_name}")
+        
+        if not job_group.job_ids:
+            raise ValueError(f"Grupo '{group_name}' não possui jobs configurados")
+        
+        self.logger.info(f"Executando grupo de jobs: {group_name}")
+        self.logger.info(f"Jobs no grupo: {job_group.job_ids}")
+        
+        # Executar jobs do grupo
+        return self.run_jobs(job_group.job_ids, options)
     
     def list_jobs(self) -> List[Job]:
         """Lista todos os jobs disponíveis"""

@@ -271,6 +271,49 @@ run_jobs_by_type() {
     fi
 }
 
+# Executar grupo configurado no JSON
+run_configured_group() {
+    echo ""
+    log_info "Grupos de jobs configurados:"
+    echo ""
+    
+    if data-runner list-groups 2>/dev/null; then
+        echo ""
+    else
+        log_warning "Nenhum grupo configurado ou erro ao listar grupos"
+        return 1
+    fi
+    
+    read -p "Digite o nome do grupo para executar: " group_name
+    
+    if [ -z "$group_name" ]; then
+        log_error "Nome do grupo não pode estar vazio"
+        return 1
+    fi
+    
+    log_run "Executando grupo: $group_name"
+    echo ""
+    
+    if data-runner run-group-config --group "$group_name"; then
+        log_success "Grupo '$group_name' executado com sucesso!"
+    else
+        log_error "Erro ao executar grupo '$group_name'"
+        return 1
+    fi
+}
+
+# Listar grupos configurados
+list_configured_groups() {
+    log_info "Grupos de jobs configurados:"
+    echo ""
+    
+    if data-runner list-groups 2>/dev/null; then
+        echo ""
+    else
+        log_warning "Nenhum grupo configurado ou erro ao listar grupos"
+    fi
+}
+
 # Menu principal
 show_menu() {
     echo ""
@@ -279,14 +322,16 @@ show_menu() {
     echo "2) Executar job único"
     echo "3) Executar múltiplos jobs"
     echo "4) Executar jobs por tipo"
-    echo "5) Executar com opções (limite, dry-run)"
-    echo "6) Ver histórico de execuções"
-    echo "7) Inspecionar banco DuckDB"
-    echo "8) Remover tabela"
-    echo "9) Sair"
+    echo "5) Executar grupo configurado no JSON"
+    echo "6) Listar grupos configurados"
+    echo "7) Executar com opções (limite, dry-run)"
+    echo "8) Ver histórico de execuções"
+    echo "9) Inspecionar banco DuckDB"
+    echo "10) Remover tabela"
+    echo "11) Sair"
     echo ""
     
-    read -p "Escolha uma opção (1-9): " choice
+    read -p "Escolha uma opção (1-11): " choice
     
     case $choice in
         1)
@@ -302,18 +347,24 @@ show_menu() {
             run_jobs_by_type
             ;;
         5)
-            run_with_options
+            run_configured_group
             ;;
         6)
-            show_history
+            list_configured_groups
             ;;
         7)
-            inspect_database
+            run_with_options
             ;;
         8)
-            drop_table
+            show_history
             ;;
         9)
+            inspect_database
+            ;;
+        10)
+            drop_table
+            ;;
+        11)
             log_success "Data-Runner finalizado!"
             exit 0
             ;;
@@ -370,6 +421,17 @@ run_direct() {
                 log_run "Executando jobs do tipo: $2"
                 data-runner run-group --type "$2"
                 ;;
+            "group-config"|"gconfig")
+                if [ -z "$2" ]; then
+                    log_error "Nome do grupo necessário. Use: ./run.sh group-config <nome_grupo>"
+                    exit 1
+                fi
+                log_run "Executando grupo configurado: $2"
+                data-runner run-group-config --group "$2"
+                ;;
+            "list-groups"|"lgroups")
+                list_configured_groups
+                ;;
             "history"|"hist")
                 show_history
                 ;;
@@ -404,6 +466,8 @@ run_direct() {
                 echo "  ./run.sh run <job_id>       # Executar job"
                 echo "  ./run.sh batch <job1,job2>  # Executar múltiplos jobs"
                 echo "  ./run.sh group <tipo>       # Executar jobs por tipo"
+                echo "  ./run.sh group-config <nome> # Executar grupo configurado"
+                echo "  ./run.sh list-groups        # Listar grupos configurados"
                 echo "  ./run.sh history            # Ver histórico"
                 echo "  ./run.sh inspect            # Inspecionar banco"
                 echo "  ./run.sh drop <table_name>  # Remover tabela"
@@ -413,6 +477,9 @@ run_direct() {
                 echo "  carga       - Jobs de carregamento de dados"
                 echo "  batimento   - Jobs de validação"
                 echo "  export-csv  - Jobs de exportação para CSV"
+                echo ""
+                echo "Grupos configurados no JSON:"
+                echo "  Use './run.sh list-groups' para ver grupos disponíveis"
                 ;;
             *)
                 log_error "Comando desconhecido: $1"

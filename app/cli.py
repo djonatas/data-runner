@@ -218,6 +218,95 @@ def run_group(job_type: str, duckdb_path: Optional[str], dry_run: bool, limit: O
         click.echo(f"❌ Erro na execução em grupo: {e}", err=True)
 
 
+@cli.command(name='list-groups')
+def list_groups():
+    """Lista todos os grupos de jobs disponíveis"""
+    try:
+        runner = JobRunner()
+        runner.load_configs()
+        
+        groups = runner.list_job_groups()
+        
+        if not groups:
+            click.echo("Nenhum grupo de jobs encontrado.")
+            return
+        
+        click.echo("\n📋 Grupos de Jobs Disponíveis:")
+        click.echo("=" * 80)
+        
+        for group in groups:
+            click.echo(f"Nome: {group.name}")
+            if group.description:
+                click.echo(f"Descrição: {group.description}")
+            click.echo(f"Jobs: {', '.join(group.job_ids) if group.job_ids else 'Nenhum'}")
+            click.echo(f"Total: {len(group.job_ids) if group.job_ids else 0} jobs")
+            click.echo("-" * 80)
+    
+    except Exception as e:
+        click.echo(f"❌ Erro ao listar grupos: {e}", err=True)
+
+
+@cli.command(name='run-group-config')
+@click.option('--group', 'group_name', required=True, help='Nome do grupo de jobs para executar')
+@click.option('--duckdb', 'duckdb_path', help='Caminho personalizado para o DuckDB')
+@click.option('--dry-run', is_flag=True, help='Mostra o que faria sem executar')
+@click.option('--limit', type=int, help='Limita o número de linhas retornadas')
+def run_group_config(group_name: str, duckdb_path: Optional[str], dry_run: bool, limit: Optional[int]):
+    """Executa um grupo de jobs configurado no JSON"""
+    try:
+        runner = JobRunner()
+        runner.load_configs()
+        
+        # Verificar se grupo existe
+        job_group = runner.get_job_group(group_name)
+        if not job_group:
+            click.echo(f"❌ Grupo de jobs '{group_name}' não encontrado")
+            return
+        
+        click.echo(f"\n🎯 Executando Grupo de Jobs: {group_name}")
+        click.echo("=" * 60)
+        if job_group.description:
+            click.echo(f"📝 Descrição: {job_group.description}")
+        click.echo(f"📋 Jobs: {', '.join(job_group.job_ids)}")
+        click.echo(f"📊 Total: {len(job_group.job_ids)} jobs")
+        click.echo()
+        
+        # Configurar opções
+        options = ExecutionOptions(
+            dry_run=dry_run,
+            limit=limit,
+            duckdb_path=duckdb_path
+        )
+        
+        # Executar grupo
+        results = runner.run_job_group(group_name, options)
+        
+        # Exibir resumo
+        click.echo(f"\n📊 Resumo da Execução do Grupo:")
+        click.echo("=" * 80)
+        
+        success_count = 0
+        error_count = 0
+        
+        for result in results:
+            status_icon = "✅" if result.status and result.status.value == "success" else "❌"
+            click.echo(f"{status_icon} {result.query_id}: {result.status.value if result.status else 'N/A'} "
+                      f"({result.rowcount or 0} linhas)")
+            
+            if result.status and result.status.value == "success":
+                success_count += 1
+            else:
+                error_count += 1
+        
+        click.echo("-" * 80)
+        click.echo(f"Total: {len(results)} jobs")
+        click.echo(f"Sucessos: {success_count}")
+        click.echo(f"Erros: {error_count}")
+    
+    except Exception as e:
+        click.echo(f"❌ Erro na execução do grupo: {e}", err=True)
+
+
 @cli.command()
 @click.option('--query-id', help='Filtrar por query_id específico')
 @click.option('--limit', type=int, default=50, help='Número máximo de registros')

@@ -191,5 +191,71 @@
       "csv_include_header": true,
       "dependencies": ["load_customers_csv", "create_sales_fact"]
     }
-  ]
+  ],
+  "job_groups": {
+    "csv_loads": {
+      "description": "Carrega todos os arquivos CSV para staging",
+      "job_ids": [
+        "load_products_csv",
+        "load_customers_csv", 
+        "load_sales_csv"
+      ]
+    },
+    "data_transformations": {
+      "description": "Transforma dados de staging em tabelas dimensionais",
+      "job_ids": [
+        "transform_products",
+        "transform_customers"
+      ]
+    },
+    "fact_tables": {
+      "description": "Cria tabelas de fatos a partir dos dados transformados",
+      "job_ids": [
+        "create_sales_fact"
+      ]
+    },
+    "summary_tables": {
+      "description": "Cria tabelas de resumo e agregações",
+      "job_ids": [
+        "create_daily_summary",
+        "create_product_summary"
+      ]
+    },
+    "exports": {
+      "description": "Exporta relatórios para CSV",
+      "job_ids": [
+        "export_sales_report",
+        "export_product_analysis",
+        "export_customer_summary"
+      ]
+    },
+    "full_pipeline": {
+      "description": "Pipeline completo: carga, transformação, fatos e resumos",
+      "job_ids": [
+        "load_products_csv",
+        "load_customers_csv",
+        "load_sales_csv",
+        "transform_products",
+        "transform_customers",
+        "create_sales_fact",
+        "create_daily_summary",
+        "create_product_summary"
+      ]
+    },
+    "validations": {
+      "description": "Executa todas as validações de qualidade",
+      "job_ids": [
+        "sales_validation",
+        "final_validation"
+      ]
+    },
+    "daily_process": {
+      "description": "Processo diário: cargas incrementais e validações",
+      "job_ids": [
+        "products_daily_sync",
+        "sales_validation",
+        "final_validation"
+      ]
+    }
+  }
 }
