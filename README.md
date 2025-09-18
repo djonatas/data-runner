@@ -154,13 +154,271 @@ cp config/jobs.json.example config/jobs.json
 
 ### ▶️ Execução de Jobs
 
+#### 📋 Listar Jobs Disponíveis
+
 ```bash
-# Via CLI tradicional
-data-runner run --id "load_people"
+# Via CLI
 data-runner list-jobs
 
-# Via scripts (mais fácil)
-./run.sh
+# Via script
+./run.sh list
+```
+
+**Retorno esperado:**
+```
+📋 Jobs disponíveis:
+  - active_in_brm (carga)
+  - person_id_duplicado (batimento)
+  - products_daily_sync (carga)
+  - sales_validation (batimento)
+  - oracle_hr_data (carga)
+  - oracle_tns_financial_data (carga)
+  - load_products_csv (carga)
+  - load_customers_csv (carga)
+  - load_sales_csv (carga)
+  - transform_products (carga)
+  - transform_customers (carga)
+  - create_sales_fact (carga)
+  - create_daily_summary (carga)
+  - create_product_summary (carga)
+  - final_validation (batimento)
+```
+
+#### 🚀 Executar Job Único
+
+```bash
+# Via CLI
+data-runner run --id "active_in_brm"
+
+# Via script
+./run.sh run "active_in_brm"
+```
+
+**Retorno esperado:**
+```
+🚀 Data-Runner - Executando Job
+================================
+📋 Job: active_in_brm
+🔗 Conexão: BRM_EXAMPLE (postgres)
+📊 Tipo: carga
+🎯 Tabela destino: stg_active_people
+
+⏳ Executando query...
+✅ Query executada com sucesso!
+📈 Resultados: 1,247 linhas processadas
+💾 Dados salvos em: stg_active_people
+
+✅ Job 'active_in_brm' executado com sucesso!
+⏱️  Tempo total: 2.3s
+```
+
+#### 📦 Executar Múltiplos Jobs
+
+```bash
+# Via CLI
+data-runner run-batch "load_products_csv,transform_products,create_sales_fact"
+
+# Via script
+./run.sh batch "load_products_csv,transform_products,create_sales_fact"
+```
+
+**Retorno esperado:**
+```
+🚀 Data-Runner - Executando Pipeline
+===================================
+📋 Jobs: load_products_csv, transform_products, create_sales_fact
+🔄 Ordem de execução: load_products_csv → transform_products → create_sales_fact
+
+⏳ Executando: load_products_csv...
+✅ Job 'load_products_csv' executado (1,500 linhas)
+
+⏳ Executando: transform_products...
+✅ Job 'transform_products' executado (1,500 linhas)
+
+⏳ Executando: create_sales_fact...
+✅ Job 'create_sales_fact' executado (3,200 linhas)
+
+🎉 Pipeline executado com sucesso!
+📊 Total: 6,200 linhas processadas
+⏱️  Tempo total: 8.7s
+```
+
+#### 🔍 Executar com Dry-Run
+
+```bash
+# Via CLI
+data-runner run --id "products_daily_sync" --dry-run
+
+# Via script
+./run.sh run "products_daily_sync" --dry-run
+```
+
+**Retorno esperado:**
+```
+🔍 Data-Runner - Dry Run Mode
+============================
+📋 Job: products_daily_sync
+🔗 Conexão: mysql_analytics (mysql)
+📊 Tipo: carga
+
+🔍 SQL que seria executado:
+SELECT product_id, name, price, category, updated_at 
+FROM products 
+WHERE updated_at >= '2024-01-01' 
+  AND updated_at <= '2024-12-31' 
+  AND price >= 1000;
+
+📊 Variáveis processadas:
+  - start_date: '2024-01-01'
+  - end_date: '2024-12-31'
+  - min_amount: 1000
+
+⚠️  Modo dry-run - nenhum dado foi processado
+```
+
+#### 📊 Executar com Limite
+
+```bash
+# Via CLI
+data-runner run --id "oracle_hr_data" --limit 100
+
+# Via script
+./run.sh run "oracle_hr_data" --limit 100
+```
+
+**Retorno esperado:**
+```
+🚀 Data-Runner - Executando Job (Limitado)
+==========================================
+📋 Job: oracle_hr_data
+🔗 Conexão: oracle_erp (oracle)
+📊 Tipo: carga
+🎯 Tabela destino: stg_oracle_employees
+🔢 Limite: 100 linhas
+
+⏳ Executando query...
+✅ Query executada com sucesso!
+📈 Resultados: 100 linhas processadas (limitado)
+💾 Dados salvos em: stg_oracle_employees
+
+✅ Job 'oracle_hr_data' executado com sucesso!
+⏱️  Tempo total: 1.2s
+```
+
+#### 📈 Ver Histórico de Execuções
+
+```bash
+# Via CLI
+data-runner history
+
+# Via script
+./run.sh history
+```
+
+**Retorno esperado:**
+```
+📈 Data-Runner - Histórico de Execuções
+======================================
+📅 Últimas 10 execuções:
+
+1. active_in_brm        | 2024-09-18 15:30:25 | SUCCESS | 1,247 linhas | 2.3s
+2. load_products_csv    | 2024-09-18 15:28:10 | SUCCESS | 1,500 linhas | 1.8s
+3. transform_products   | 2024-09-18 15:28:12 | SUCCESS | 1,500 linhas | 2.1s
+4. create_sales_fact    | 2024-09-18 15:28:15 | SUCCESS | 3,200 linhas | 4.9s
+5. sales_validation     | 2024-09-18 15:25:00 | SUCCESS | 45 linhas   | 0.8s
+6. oracle_hr_data       | 2024-09-18 15:20:15 | SUCCESS | 2,100 linhas | 3.2s
+7. person_id_duplicado  | 2024-09-18 15:18:30 | ERROR   | 0 linhas     | 0.5s
+8. products_daily_sync  | 2024-09-18 15:15:45 | SUCCESS | 850 linhas   | 1.9s
+9. load_customers_csv   | 2024-09-18 15:10:20 | SUCCESS | 3,500 linhas | 2.4s
+10. final_validation    | 2024-09-18 15:05:10 | SUCCESS | 12 linhas    | 0.3s
+
+📊 Estatísticas:
+  ✅ Sucessos: 9/10 (90%)
+  ❌ Erros: 1/10 (10%)
+  📈 Total processado: 14,054 linhas
+  ⏱️  Tempo médio: 1.9s por job
+```
+
+#### 🔍 Inspecionar Banco DuckDB
+
+```bash
+# Via CLI
+data-runner inspect
+
+# Via script
+./run.sh inspect
+```
+
+**Retorno esperado:**
+```
+🔍 Data-Runner - Inspeção do DuckDB
+==================================
+📁 Arquivo: ./data/warehouse.duckdb
+📊 Tamanho: 4.2 MB
+
+📋 Tabelas disponíveis:
+
+1. stg_active_people
+   📊 Linhas: 1,247
+   📅 Última atualização: 2024-09-18 15:30:25
+   📝 Colunas: person_id, name, email, active, created_at
+
+2. stg_products
+   📊 Linhas: 1,500
+   📅 Última atualização: 2024-09-18 15:28:10
+   📝 Colunas: product_id, name, price, category, updated_at
+
+3. stg_oracle_employees
+   📊 Linhas: 2,100
+   📅 Última atualização: 2024-09-18 15:20:15
+   📝 Colunas: employee_id, first_name, last_name, hire_date, department_id
+
+4. fact_sales
+   📊 Linhas: 3,200
+   📅 Última atualização: 2024-09-18 15:28:15
+   📝 Colunas: sale_id, product_id, customer_id, amount, date
+
+5. audit_job_runs
+   📊 Linhas: 156
+   📅 Última atualização: 2024-09-18 15:30:25
+   📝 Colunas: run_id, query_id, status, started_at, finished_at, rowcount
+
+💾 Total de dados: 8,203 linhas
+🗄️  Espaço usado: 4.2 MB
+```
+
+#### ⚠️ Exemplo de Erro
+
+```bash
+data-runner run --id "job_inexistente"
+```
+
+**Retorno esperado:**
+```
+❌ Data-Runner - Erro
+====================
+📋 Job: job_inexistente
+
+❌ Erro: Job 'job_inexistente' não encontrado
+
+💡 Jobs disponíveis:
+  - active_in_brm
+  - person_id_duplicado
+  - products_daily_sync
+  - sales_validation
+  - oracle_hr_data
+  - oracle_tns_financial_data
+  - load_products_csv
+  - load_customers_csv
+  - load_sales_csv
+  - transform_products
+  - transform_customers
+  - create_sales_fact
+  - create_daily_summary
+  - create_product_summary
+  - final_validation
+
+🔧 Use 'data-runner list-jobs' para ver todos os jobs disponíveis
 ```
 
 ## 📁 Estrutura do Projeto
@@ -918,9 +1176,11 @@ Configure schema padrão para diferentes bancos:
 O Data-Runner inclui scripts shell para facilitar o uso e automação:
 
 ### 🚀 `install.sh` - Instalação Completa
+
 ```bash
 ./install.sh
 ```
+
 - ✅ Verifica Python 3.11+
 - ✅ Cria ambiente virtual
 - ✅ Instala dependências básicas e opcionais
@@ -928,15 +1188,18 @@ O Data-Runner inclui scripts shell para facilitar o uso e automação:
 - ✅ Interface colorida e interativa
 
 ### ⚡ `setup.sh` - Setup Rápido
+
 ```bash
 ./setup.sh
 ```
+
 - ✅ Configuração rápida para desenvolvimento
 - ✅ Menu interativo para configuração
 - ✅ Backups automáticos
 - ✅ Teste de configuração
 
 ### ▶️ `run.sh` - Executor de Jobs
+
 ```bash
 # Modo interativo
 ./run.sh
@@ -947,12 +1210,14 @@ O Data-Runner inclui scripts shell para facilitar o uso e automação:
 ./run.sh list
 ./run.sh history
 ```
+
 - ✅ Interface interativa e modo direto
 - ✅ Execução de jobs únicos e múltiplos
 - ✅ Opções avançadas (limite, dry-run)
 - ✅ Histórico e inspeção de banco
 
 ### 🧪 `test.sh` - Testes e Validação
+
 ```bash
 # Modo interativo
 ./test.sh
@@ -962,12 +1227,14 @@ O Data-Runner inclui scripts shell para facilitar o uso e automação:
 ./test.sh imports
 ./test.sh cli
 ```
+
 - ✅ Teste de importações e funcionalidades
 - ✅ Validação de configuração
 - ✅ Testes unitários
 - ✅ Relatório de resumo
 
 ### 📖 Documentação dos Scripts
+
 Para informações detalhadas sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md).
 
 ## 🐛 Solução de Problemas
