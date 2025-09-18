@@ -198,6 +198,17 @@ class DuckDBRepository:
         Returns:
             True se tabela foi removida com sucesso
         """
+        # Bloqueio para tabelas críticas do sistema
+        protected_tables = {
+            'audit_job_runs',
+            'audit_jobs_runs',  # variação do nome
+            'audit_job_run',
+            'audit_jobs_run'    # variação do nome
+        }
+        
+        if table_name.lower() in protected_tables:
+            raise ValueError(f"Não é possível remover a tabela '{table_name}' - é uma tabela protegida do sistema")
+        
         with duckdb.connect(self.db_path) as conn:
             try:
                 # Verifica se tabela existe

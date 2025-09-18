@@ -260,12 +260,17 @@ def drop_table(table_name: str, confirm: bool):
                 return
         
         # Remover tabela
-        success = runner.repository.drop_table(table_name)
-        
-        if success:
-            click.echo(f"✅ Tabela '{table_name}' removida com sucesso!")
-        else:
-            click.echo(f"❌ Erro ao remover tabela '{table_name}'")
+        try:
+            success = runner.repository.drop_table(table_name)
+            
+            if success:
+                click.echo(f"✅ Tabela '{table_name}' removida com sucesso!")
+            else:
+                click.echo(f"❌ Erro ao remover tabela '{table_name}'")
+        except ValueError as ve:
+            click.echo(f"🚫 {ve}", err=True)
+        except Exception as e:
+            click.echo(f"❌ Erro ao remover tabela: {e}", err=True)
     
     except Exception as e:
         click.echo(f"❌ Erro ao remover tabela: {e}", err=True)
