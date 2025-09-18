@@ -503,6 +503,7 @@ Linhas: 156
 ```
 
 > **⚠️ Tabelas Protegidas:**
+>
 > - `audit_job_runs` - Tabela de auditoria do sistema
 > - `audit_jobs_runs` - Variação do nome
 > - `audit_job_run` - Variação do nome
@@ -532,21 +533,22 @@ O Data-Runner suporta jobs do tipo `export-csv` que executam queries e exportam 
 
 #### Parâmetros do Export-CSV
 
-| Parâmetro | Obrigatório | Padrão | Descrição |
-|-----------|-------------|--------|-----------|
-| `queryId` | ✅ | - | Identificador único do job |
-| `type` | ✅ | - | Deve ser `"export-csv"` |
-| `connection` | ✅ | - | Nome da conexão para executar a query |
-| `sql` | ✅ | - | Query SQL para executar |
-| `csv_file` | ✅ | - | Nome do arquivo CSV de saída |
-| `csv_separator` | ❌ | `","` | Separador do CSV |
-| `csv_encoding` | ❌ | `"utf-8"` | Encoding do arquivo |
-| `csv_include_header` | ❌ | `true` | Se inclui cabeçalho |
-| `dependencies` | ❌ | `[]` | Lista de jobs dependentes |
+| Parâmetro            | Obrigatório | Padrão    | Descrição                             |
+| -------------------- | ----------- | --------- | ------------------------------------- |
+| `queryId`            | ✅          | -         | Identificador único do job            |
+| `type`               | ✅          | -         | Deve ser `"export-csv"`               |
+| `connection`         | ✅          | -         | Nome da conexão para executar a query |
+| `sql`                | ✅          | -         | Query SQL para executar               |
+| `csv_file`           | ✅          | -         | Nome do arquivo CSV de saída          |
+| `csv_separator`      | ❌          | `","`     | Separador do CSV                      |
+| `csv_encoding`       | ❌          | `"utf-8"` | Encoding do arquivo                   |
+| `csv_include_header` | ❌          | `true`    | Se inclui cabeçalho                   |
+| `dependencies`       | ❌          | `[]`      | Lista de jobs dependentes             |
 
 #### Exemplos Práticos
 
 **Export com separador personalizado:**
+
 ```json
 {
   "queryId": "export_product_analysis",
@@ -562,6 +564,7 @@ O Data-Runner suporta jobs do tipo `export-csv` que executam queries e exportam 
 ```
 
 **Export com múltiplas dependências:**
+
 ```json
 {
   "queryId": "export_customer_summary",
