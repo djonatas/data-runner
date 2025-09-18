@@ -157,6 +157,39 @@
       "connection": "sqlite_dev",
       "sql": "SELECT 'Data Quality Check' as check_type, CASE WHEN COUNT(*) > 0 THEN 'PASS' ELSE 'FAIL' END as status FROM fact_sales WHERE total_amount <= 0 OR quantity <= 0;",
       "dependencies": ["create_sales_fact"]
+    },
+    {
+      "queryId": "export_sales_report",
+      "type": "export-csv",
+      "connection": "sqlite_dev",
+      "sql": "SELECT s.sale_id, p.name as product_name, c.name as customer_name, s.quantity, s.unit_price, s.total_amount, s.sale_date FROM fact_sales s LEFT JOIN stg_products p ON s.product_id = p.id LEFT JOIN stg_customers c ON s.customer_id = c.id WHERE s.sale_date >= DATE '${var:start_date}' ORDER BY s.sale_date DESC;",
+      "csv_file": "sales_report_${var:start_date}.csv",
+      "csv_separator": ",",
+      "csv_encoding": "utf-8",
+      "csv_include_header": true,
+      "dependencies": ["create_sales_fact"]
+    },
+    {
+      "queryId": "export_product_analysis",
+      "type": "export-csv",
+      "connection": "sqlite_dev",
+      "sql": "SELECT category, COUNT(*) as product_count, AVG(price) as avg_price, MIN(price) as min_price, MAX(price) as max_price FROM stg_products GROUP BY category ORDER BY avg_price DESC;",
+      "csv_file": "product_analysis.csv",
+      "csv_separator": ";",
+      "csv_encoding": "utf-8",
+      "csv_include_header": true,
+      "dependencies": ["load_products_csv"]
+    },
+    {
+      "queryId": "export_customer_summary",
+      "type": "export-csv",
+      "connection": "sqlite_dev",
+      "sql": "SELECT c.name, c.email, COUNT(s.sale_id) as total_purchases, SUM(s.total_amount) as total_spent, AVG(s.total_amount) as avg_purchase FROM stg_customers c LEFT JOIN fact_sales s ON c.id = s.customer_id GROUP BY c.id, c.name, c.email ORDER BY total_spent DESC;",
+      "csv_file": "customer_summary.csv",
+      "csv_separator": ",",
+      "csv_encoding": "utf-8",
+      "csv_include_header": true,
+      "dependencies": ["load_customers_csv", "create_sales_fact"]
     }
   ]
 }

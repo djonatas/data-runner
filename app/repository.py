@@ -43,7 +43,8 @@ class DuckDBRepository:
             rowcount INTEGER,
             error VARCHAR,
             target_table VARCHAR,
-            connection VARCHAR
+            connection VARCHAR,
+            csv_file VARCHAR
         )
         """
         
@@ -68,6 +69,43 @@ class DuckDBRepository:
             conn.register('temp_df', df)
             conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM temp_df")
     
+    def export_dataframe_to_csv(self, df: pd.DataFrame, csv_file: str, 
+                               separator: str = ",", encoding: str = "utf-8", 
+                               include_header: bool = True) -> str:
+        """
+        Exporta DataFrame para arquivo CSV
+        
+        Args:
+            df: DataFrame para exportar
+            csv_file: Nome do arquivo CSV
+            separator: Separador do CSV (padrão: ',')
+            encoding: Encoding do arquivo (padrão: 'utf-8')
+            include_header: Se inclui cabeçalho (padrão: True)
+            
+        Returns:
+            Caminho completo do arquivo CSV criado
+        """
+        import os
+        
+        # Garante que o diretório data existe
+        data_dir = os.path.dirname(self.db_path)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+        
+        # Caminho completo do arquivo CSV
+        csv_path = os.path.join(data_dir, csv_file)
+        
+        # Exporta para CSV
+        df.to_csv(
+            csv_path,
+            sep=separator,
+            encoding=encoding,
+            index=False,
+            header=include_header
+        )
+        
+        return csv_path
+    
     def save_job_run(self, job_run: JobRun):
         """
         Salva registro de execução de job
@@ -79,8 +117,8 @@ class DuckDBRepository:
             insert_sql = """
             INSERT OR REPLACE INTO audit_job_runs 
             (run_id, query_id, type, started_at, finished_at, status, 
-             rowcount, error, target_table, connection)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             rowcount, error, target_table, connection, csv_file)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             
             conn.execute(insert_sql, (
@@ -93,7 +131,8 @@ class DuckDBRepository:
                 job_run.rowcount,
                 job_run.error,
                 job_run.target_table,
-                job_run.connection
+                job_run.connection,
+                job_run.csv_file
             ))
     
     def get_job_runs(self, query_id: Optional[str] = None, limit: int = 100) -> pd.DataFrame:

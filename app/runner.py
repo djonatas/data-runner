@@ -274,6 +274,23 @@ class JobRunner:
                     self.repository.save_dataframe(df, val_table, replace=True)
                     self.logger.info(f"Resultado de batimento salvo na tabela {val_table}")
                 
+                elif job.type == JobType.EXPORT_CSV:
+                    # Para export-csv, exportar para arquivo CSV
+                    if not job.csv_file:
+                        raise ValueError("Job export-csv deve ter 'csv_file' definido")
+                    
+                    # Configurar parâmetros CSV com valores padrão
+                    separator = job.csv_separator or ","
+                    encoding = job.csv_encoding or "utf-8"
+                    include_header = job.csv_include_header if job.csv_include_header is not None else True
+                    
+                    csv_path = self.repository.export_dataframe_to_csv(
+                        df, job.csv_file, separator, encoding, include_header
+                    )
+                    
+                    job_run.csv_file = csv_path
+                    self.logger.info(f"Dados exportados para CSV: {csv_path}")
+                
                 job_run.status = JobStatus.SUCCESS
                 job_run.rowcount = rowcount
                 

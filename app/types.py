@@ -12,6 +12,7 @@ class JobType(Enum):
     """Tipos de job suportados"""
     CARGA = "carga"
     BATIMENTO = "batimento"
+    EXPORT_CSV = "export-csv"
 
 
 class JobStatus(Enum):
@@ -82,6 +83,11 @@ class Job:
     sql: Optional[str] = None  # Opcional para conexões CSV
     target_table: Optional[str] = None
     dependencies: Optional[List[str]] = None  # Lista de query_ids dos jobs dependentes
+    # Parâmetros específicos para export-csv
+    csv_file: Optional[str] = None  # Nome do arquivo CSV de saída
+    csv_separator: Optional[str] = None  # Separador do CSV (padrão: ',')
+    csv_encoding: Optional[str] = None  # Encoding do arquivo (padrão: 'utf-8')
+    csv_include_header: Optional[bool] = None  # Se inclui cabeçalho (padrão: True)
 
 
 @dataclass
@@ -97,6 +103,7 @@ class JobRun:
     error: Optional[str] = None
     target_table: Optional[str] = None
     connection: Optional[str] = None
+    csv_file: Optional[str] = None  # Arquivo CSV exportado (para jobs export-csv)
 
     @classmethod
     def create_new(cls, query_id: str, job_type: JobType) -> "JobRun":

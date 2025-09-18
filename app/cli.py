@@ -32,12 +32,21 @@ def list_jobs():
         click.echo("=" * 80)
         
         for job in jobs:
-            target_table = job.target_table or f"stg_{job.query_id}" if job.type.value == "carga" else f"val_{job.query_id}"
+            if job.type.value == "carga":
+                target_table = job.target_table or f"stg_{job.query_id}"
+            elif job.type.value == "batimento":
+                target_table = f"val_{job.query_id}"
+            elif job.type.value == "export-csv":
+                target_table = f"CSV: {job.csv_file or 'N/A'}"
+            else:
+                target_table = "N/A"
+            
             click.echo(f"ID: {job.query_id}")
             click.echo(f"Tipo: {job.type.value}")
             click.echo(f"Conexão: {job.connection}")
-            click.echo(f"Tabela alvo: {target_table}")
-            click.echo(f"SQL: {job.sql[:100]}{'...' if len(job.sql) > 100 else ''}")
+            click.echo(f"Destino: {target_table}")
+            if job.sql:
+                click.echo(f"SQL: {job.sql[:100]}{'...' if len(job.sql) > 100 else ''}")
             click.echo("-" * 80)
     
     except Exception as e:
@@ -74,6 +83,10 @@ def run(query_id: str, duckdb_path: Optional[str], dry_run: bool,
         click.echo(f"Status: {result.status.value if result.status else 'N/A'}")
         click.echo(f"Linhas processadas: {result.rowcount or 0}")
         click.echo(f"Tabela alvo: {result.target_table or 'N/A'}")
+        
+        # Mostrar arquivo CSV se aplicável
+        if result.csv_file:
+            click.echo(f"Arquivo CSV: {result.csv_file}")
         
         if result.error:
             click.echo(f"❌ Erro: {result.error}")
@@ -166,9 +179,16 @@ def history(query_id: Optional[str], limit: int):
         
         for _, row in history_df.iterrows():
             status_icon = "✅" if row['status'] == 'success' else "❌"
+            
+            # Determinar destino baseado no tipo
+            if row['type'] == 'export-csv' and row['csv_file']:
+                destino = f"CSV: {row['csv_file']}"
+            else:
+                destino = row['target_table'] or 'N/A'
+            
             click.echo(f"{status_icon} {row['query_id']} | {row['type']} | "
                       f"{row['started_at']} | {row['status']} | "
-                      f"{row['rowcount'] or 0} linhas | {row['target_table'] or 'N/A'}")
+                      f"{row['rowcount'] or 0} linhas | {destino}")
             
             if row['error']:
                 click.echo(f"    Erro: {row['error']}")
