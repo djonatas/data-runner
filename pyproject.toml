@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "migradata"
+name = "data-runner"
 version = "1.0.0"
 description = "Executor de consultas/processos parametrizado por JSON"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "MigraData Team", email = "team@migradata.com"}
+    {name = "Data-Runner Team", email = "team@data-runner.com"}
 ]
 keywords = ["etl", "data", "sql", "duckdb", "postgresql", "sqlite"]
 classifiers = [
@@ -51,16 +51,16 @@ dev = [
     "mypy>=1.0.0",
 ]
 all = [
-    "migradata[mysql,mssql,oracle,dev]",
+    "data-runner[mysql,mssql,oracle,dev]",
 ]
 
 [project.scripts]
-migradata = "app.cli:cli"
+data-runner = "app.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/migradata/migradata"
-Repository = "https://github.com/migradata/migradata"
-Issues = "https://github.com/migradata/migradata/issues"
+Homepage = "https://github.com/data-runner/data-runner"
+Repository = "https://github.com/data-runner/data-runner"
+Issues = "https://github.com/data-runner/data-runner/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

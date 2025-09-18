@@ -1,5 +1,5 @@
 """
-Interface de linha de comando para o MigraData
+Interface de linha de comando para o Data-Runner
 """
 
 import click
@@ -11,7 +11,7 @@ from .types import ExecutionOptions
 @click.group()
 @click.version_option(version="1.0.0")
 def cli():
-    """MigraData - Executor de consultas/processos parametrizado por JSON"""
+    """Data-Runner - Executor de consultas/processos parametrizado por JSON"""
     pass
 
 

@@ -1,5 +1,5 @@
 """
-Tipos e contratos para o sistema MigraData
+Tipos e contratos para o sistema Data-Runner
 """
 
 from dataclasses import dataclass

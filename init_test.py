@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de inicialização e teste do MigraData
+Script de inicialização e teste do Data-Runner
 Testa componentes que não dependem de bibliotecas externas
 """
 
@@ -213,7 +213,7 @@ def test_json_configs():
 
 def main():
     """Função principal de teste"""
-    print("🚀 MigraData - Inicialização e Testes")
+    print("🚀 Data-Runner - Inicialização e Testes")
     print("=" * 50)
     
     try:

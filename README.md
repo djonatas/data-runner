@@ -124,19 +124,19 @@ Os exemplos de uso estão documentados na seção "Funcionalidades Avançadas" a
 
 ```bash
 # Executar job único
-migradata run-job "load_people"
+data-runner run-job "load_people"
 
 # Executar múltiplos jobs com dependências
-migradata run-jobs "load_products_csv,transform_products,create_sales_fact"
+data-runner run-jobs "load_products_csv,transform_products,create_sales_fact"
 
 # Executar todos os jobs
-migradata run-all
+data-runner run-all
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```
-migradata/
+data-runner/
 ├── app/
 │   ├── __init__.py
 │   ├── cli.py                    # Interface de linha de comando
@@ -927,8 +927,8 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ## 🆘 Suporte
 
-- **Issues**: [GitHub Issues](https://github.com/migradata/migradata/issues)
-- **Discussões**: [GitHub Discussions](https://github.com/migradata/migradata/discussions)
+- **Issues**: [GitHub Issues](https://github.com/data-runner/data-runner/issues)
+- **Discussões**: [GitHub Discussions](https://github.com/data-runner/data-runner/discussions)
 
 ---
 
@@ -957,4 +957,4 @@ O **Data-Runner** é uma ferramenta completa para processamento de dados que ofe
 - **Análise de Dados**: Processamento e transformação de dados
 - **Automação**: Jobs agendados e parametrizados
 
-**MigraData** - A ferramenta definitiva para migração e processamento de dados! 🚀
+**Data-Runner** - A ferramenta definitiva para migração e processamento de dados! 🚀
