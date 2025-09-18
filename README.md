@@ -165,6 +165,7 @@ data-runner list-jobs
 ```
 
 **Retorno esperado:**
+
 ```
 📋 Jobs disponíveis:
   - active_in_brm (carga)
@@ -195,6 +196,7 @@ data-runner run --id "active_in_brm"
 ```
 
 **Retorno esperado:**
+
 ```
 🚀 Data-Runner - Executando Job
 ================================
@@ -223,6 +225,7 @@ data-runner run-batch "load_products_csv,transform_products,create_sales_fact"
 ```
 
 **Retorno esperado:**
+
 ```
 🚀 Data-Runner - Executando Pipeline
 ===================================
@@ -254,6 +257,7 @@ data-runner run --id "products_daily_sync" --dry-run
 ```
 
 **Retorno esperado:**
+
 ```
 🔍 Data-Runner - Dry Run Mode
 ============================
@@ -262,10 +266,10 @@ data-runner run --id "products_daily_sync" --dry-run
 📊 Tipo: carga
 
 🔍 SQL que seria executado:
-SELECT product_id, name, price, category, updated_at 
-FROM products 
-WHERE updated_at >= '2024-01-01' 
-  AND updated_at <= '2024-12-31' 
+SELECT product_id, name, price, category, updated_at
+FROM products
+WHERE updated_at >= '2024-01-01'
+  AND updated_at <= '2024-12-31'
   AND price >= 1000;
 
 📊 Variáveis processadas:
@@ -287,6 +291,7 @@ data-runner run --id "oracle_hr_data" --limit 100
 ```
 
 **Retorno esperado:**
+
 ```
 🚀 Data-Runner - Executando Job (Limitado)
 ==========================================
@@ -316,6 +321,7 @@ data-runner history
 ```
 
 **Retorno esperado:**
+
 ```
 📈 Data-Runner - Histórico de Execuções
 ======================================
@@ -350,6 +356,7 @@ data-runner inspect
 ```
 
 **Retorno esperado:**
+
 ```
 🔍 Data-Runner - Inspeção do DuckDB
 ==================================
@@ -394,6 +401,7 @@ data-runner run --id "job_inexistente"
 ```
 
 **Retorno esperado:**
+
 ```
 ❌ Data-Runner - Erro
 ====================
