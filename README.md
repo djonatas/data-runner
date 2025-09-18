@@ -106,31 +106,61 @@ pip install -e ".[dev]"
 
 ## ⚡ Quick Start
 
-### 1. Configuração Básica
+### 🚀 Instalação Rápida (Recomendado)
 
 ```bash
-# Copie os arquivos de exemplo
+# Clone o repositório
+git clone <repository-url>
+cd data-runner
+
+# Instalação automática com scripts
+./install.sh
+```
+
+### 📜 Scripts Shell Disponíveis
+
+O Data-Runner inclui scripts shell para facilitar o uso:
+
+```bash
+# Instalação completa com dependências opcionais
+./install.sh
+
+# Setup rápido e configuração
+./setup.sh
+
+# Execução de jobs (modo interativo)
+./run.sh
+
+# Execução direta
+./run.sh run "meu_job"
+./run.sh batch "job1,job2,job3"
+
+# Testes e validação
+./test.sh
+```
+
+### 🔧 Instalação Manual
+
+```bash
+# Instale as dependências
+pip install -e .
+
+# Configure os arquivos
 cp config/connections.json.example config/connections.json
 cp config/jobs.json.example config/jobs.json
 
 # Edite com suas configurações reais
 ```
 
-### 2. Configuração de Exemplos
-
-Os exemplos de uso estão documentados na seção "Funcionalidades Avançadas" abaixo.
-
-### 3. Execução de Jobs
+### ▶️ Execução de Jobs
 
 ```bash
-# Executar job único
-data-runner run-job "load_people"
+# Via CLI tradicional
+data-runner run --id "load_people"
+data-runner list-jobs
 
-# Executar múltiplos jobs com dependências
-data-runner run-jobs "load_products_csv,transform_products,create_sales_fact"
-
-# Executar todos os jobs
-data-runner run-all
+# Via scripts (mais fácil)
+./run.sh
 ```
 
 ## 📁 Estrutura do Projeto
@@ -159,6 +189,11 @@ data-runner/
 ├── tests/
 │   ├── test_config_parsing.py
 │   └── test_runner_sqlite.py
+├── install.sh                   # Script de instalação completa
+├── setup.sh                     # Script de setup rápido
+├── run.sh                       # Script de execução de jobs
+├── test.sh                      # Script de testes e validação
+├── SCRIPTS.md                   # Documentação dos scripts
 ├── pyproject.toml
 └── README.md
 ```
@@ -878,13 +913,90 @@ Configure schema padrão para diferentes bancos:
 - **MSSQL**: `USE schema` executado automaticamente
 - **Oracle**: `ALTER SESSION SET CURRENT_SCHEMA` executado automaticamente
 
+## 📜 Scripts Shell
+
+O Data-Runner inclui scripts shell para facilitar o uso e automação:
+
+### 🚀 `install.sh` - Instalação Completa
+```bash
+./install.sh
+```
+- ✅ Verifica Python 3.11+
+- ✅ Cria ambiente virtual
+- ✅ Instala dependências básicas e opcionais
+- ✅ Configura arquivos de exemplo
+- ✅ Interface colorida e interativa
+
+### ⚡ `setup.sh` - Setup Rápido
+```bash
+./setup.sh
+```
+- ✅ Configuração rápida para desenvolvimento
+- ✅ Menu interativo para configuração
+- ✅ Backups automáticos
+- ✅ Teste de configuração
+
+### ▶️ `run.sh` - Executor de Jobs
+```bash
+# Modo interativo
+./run.sh
+
+# Modo direto
+./run.sh run "meu_job"
+./run.sh batch "job1,job2"
+./run.sh list
+./run.sh history
+```
+- ✅ Interface interativa e modo direto
+- ✅ Execução de jobs únicos e múltiplos
+- ✅ Opções avançadas (limite, dry-run)
+- ✅ Histórico e inspeção de banco
+
+### 🧪 `test.sh` - Testes e Validação
+```bash
+# Modo interativo
+./test.sh
+
+# Modo direto
+./test.sh all
+./test.sh imports
+./test.sh cli
+```
+- ✅ Teste de importações e funcionalidades
+- ✅ Validação de configuração
+- ✅ Testes unitários
+- ✅ Relatório de resumo
+
+### 📖 Documentação dos Scripts
+Para informações detalhadas sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md).
+
 ## 🐛 Solução de Problemas
+
+### Usando Scripts Shell (Recomendado)
+
+```bash
+# Executar testes completos
+./test.sh all
+
+# Verificar importações
+./test.sh imports
+
+# Testar CLI
+./test.sh cli
+
+# Verificar configuração
+./test.sh config
+```
 
 ### Erro de Conexão
 
 ```bash
-# Verificar se a conexão está configurada corretamente
-python -m app list
+# Via scripts (mais fácil)
+./run.sh list
+./test.sh config
+
+# Via CLI tradicional
+data-runner list-jobs
 
 # Testar conexão específica
 python -c "from app.connections import ConnectionFactory; from app.types import Connection, ConnectionType, ConnectionParams; conn = Connection('test', ConnectionType.SQLITE, ConnectionParams(filepath='./test.db')); db_conn = ConnectionFactory.create_connection(conn); print(db_conn.test_connection())"
@@ -893,8 +1005,11 @@ python -c "from app.connections import ConnectionFactory; from app.types import 
 ### Erro de SQL
 
 ```bash
-# Executar com dry-run para ver o SQL processado
-python -m app run --id problematic_job --dry-run
+# Via scripts (mais fácil)
+./run.sh run "problematic_job" --dry-run
+
+# Via CLI tradicional
+data-runner run --id problematic_job --dry-run
 
 # Verificar logs detalhados
 python -m app run --id problematic_job --verbose
@@ -948,6 +1063,7 @@ O **Data-Runner** é uma ferramenta completa para processamento de dados que ofe
 - ✅ **Execução paralela**: Jobs independentes executados simultaneamente
 - ✅ **Auditoria completa**: Rastreamento de todas as execuções
 - ✅ **CLI intuitiva**: Interface de linha de comando fácil de usar
+- ✅ **Scripts Shell**: Instalação, setup, execução e testes automatizados
 
 ### 🚀 **Casos de Uso**
 
