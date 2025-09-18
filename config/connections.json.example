@@ -1,5 +1,5 @@
 {
-  "defaultDuckDbPath": "./data/warehouse.duckdb",
+  "defaultDuckDbPath": "${env:DEFAULT_DUCKDB_PATH}",
   "connections": [
     {
       "name": "POSTGRES_EXAMPLE",
@@ -11,6 +11,18 @@
         "user": "your_username",
         "password": "your_password",
         "schema": "your_schema"
+      }
+    },
+    {
+      "name": "POSTGRES_ENV",
+      "type": "postgres",
+      "params": {
+        "host": "${env:POSTGRES_HOST}",
+        "port": "${env:POSTGRES_PORT}",
+        "database": "${env:POSTGRES_DATABASE}",
+        "user": "${env:POSTGRES_USER}",
+        "password": "${env:POSTGRES_PASSWORD}",
+        "schema": "${env:POSTGRES_SCHEMA}"
       }
     },
     {
@@ -30,6 +42,18 @@
         "user": "analytics_user",
         "password": "analytics_pass",
         "schema": "analytics"
+      }
+    },
+    {
+      "name": "mysql_env",
+      "type": "mysql",
+      "params": {
+        "host": "${env:MYSQL_HOST}",
+        "port": "${env:MYSQL_PORT}",
+        "database": "${env:MYSQL_DATABASE}",
+        "user": "${env:MYSQL_USER}",
+        "password": "${env:MYSQL_PASSWORD}",
+        "schema": "${env:MYSQL_SCHEMA}"
       }
     },
     {

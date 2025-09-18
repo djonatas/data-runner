@@ -16,6 +16,7 @@ from .connections import ConnectionFactory
 from .repository import DuckDBRepository
 from .variable_processor import VariableProcessor
 from .dependency_manager import DependencyManager
+from .env_processor import EnvironmentVariableProcessor
 from .sql_utils import (
     expand_env_vars, apply_limit, sanitize_table_name, 
     get_default_target_table, truncate_sql_for_log
@@ -99,12 +100,16 @@ class JobRunner:
         """Converte dados JSON em ConnectionsConfig"""
         from .types import ConnectionType, ConnectionParams
         
+        # Processar variáveis de ambiente nos dados
+        env_processor = EnvironmentVariableProcessor()
+        processed_data = env_processor.process_dict(data)
+        
         connections = []
-        for conn_data in data.get("connections", []):
+        for conn_data in processed_data.get("connections", []):
             # Converter tipo de string para enum
             conn_type = ConnectionType(conn_data["type"])
             
-            # Criar parâmetros
+            # Criar parâmetros (já processados com variáveis de ambiente)
             params = ConnectionParams(**conn_data["params"])
             
             # Criar conexão
@@ -116,7 +121,7 @@ class JobRunner:
             connections.append(connection)
         
         return ConnectionsConfig(
-            default_duckdb_path=data["defaultDuckDbPath"],
+            default_duckdb_path=processed_data["defaultDuckDbPath"],
             connections=connections
         )
     
