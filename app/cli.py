@@ -154,6 +154,70 @@ def run_batch(query_ids: str, duckdb_path: Optional[str], dry_run: bool,
         click.echo(f"❌ Erro na execução em lote: {e}", err=True)
 
 
+@cli.command(name='run-group')
+@click.option('--type', 'job_type', required=True, help='Tipo de job para agrupar (carga, batimento, export-csv)')
+@click.option('--duckdb', 'duckdb_path', help='Caminho personalizado para o DuckDB')
+@click.option('--dry-run', is_flag=True, help='Mostra o que faria sem executar')
+@click.option('--limit', type=int, help='Limita o número de linhas retornadas')
+def run_group(job_type: str, duckdb_path: Optional[str], dry_run: bool, limit: Optional[int]):
+    """Executa todos os jobs de um tipo específico"""
+    try:
+        runner = JobRunner()
+        runner.load_configs()
+        
+        # Buscar jobs do tipo especificado
+        all_jobs = runner.list_jobs()
+        jobs_of_type = [job for job in all_jobs if job.type.value == job_type]
+        
+        if not jobs_of_type:
+            click.echo(f"❌ Nenhum job do tipo '{job_type}' encontrado")
+            return
+        
+        job_ids = [job.query_id for job in jobs_of_type]
+        
+        click.echo(f"\n🎯 Executando Jobs do Tipo: {job_type}")
+        click.echo("=" * 60)
+        click.echo(f"📋 Jobs encontrados: {len(job_ids)}")
+        for job_id in job_ids:
+            click.echo(f"  - {job_id}")
+        click.echo()
+        
+        # Configurar opções
+        options = ExecutionOptions(
+            dry_run=dry_run,
+            limit=limit,
+            duckdb_path=duckdb_path
+        )
+        
+        # Executar jobs
+        results = runner.run_jobs(job_ids, options)
+        
+        # Exibir resumo
+        click.echo(f"\n📊 Resumo da Execução em Grupo:")
+        click.echo("=" * 80)
+        
+        success_count = 0
+        error_count = 0
+        
+        for result in results:
+            status_icon = "✅" if result.status and result.status.value == "success" else "❌"
+            click.echo(f"{status_icon} {result.query_id}: {result.status.value if result.status else 'N/A'} "
+                      f"({result.rowcount or 0} linhas)")
+            
+            if result.status and result.status.value == "success":
+                success_count += 1
+            else:
+                error_count += 1
+        
+        click.echo("-" * 80)
+        click.echo(f"Total: {len(results)} jobs")
+        click.echo(f"Sucessos: {success_count}")
+        click.echo(f"Erros: {error_count}")
+    
+    except Exception as e:
+        click.echo(f"❌ Erro na execução em grupo: {e}", err=True)
+
+
 @cli.command()
 @click.option('--query-id', help='Filtrar por query_id específico')
 @click.option('--limit', type=int, default=50, help='Número máximo de registros')

@@ -351,31 +351,66 @@ class JobRunner:
         
         self.logger.info(f"Ordem de execução: {execution_order}")
         
-        for query_id in execution_order:
+        # Logs de progresso melhorados
+        total_jobs = len(execution_order)
+        start_time = datetime.now()
+        
+        print(f"\n🚀 Data-Runner - Executando Pipeline")
+        print("=" * 80)
+        print(f"📋 Jobs: {', '.join(query_ids) if len(query_ids) <= 5 else f'{len(query_ids)} jobs'}")
+        print(f"🔄 Ordem de execução: {' → '.join(execution_order[:3])}{'...' if len(execution_order) > 3 else ''}")
+        print(f"📊 Total de jobs: {total_jobs}")
+        print()
+        
+        for i, query_id in enumerate(execution_order, 1):
             # Pular se já foi executado ou falhou
             if query_id in completed_jobs or query_id in failed_jobs:
                 continue
             
             # Verificar se pode executar (dependências atendidas)
             if self.dependency_manager and not self.dependency_manager.can_execute_job(query_id, completed_jobs):
-                self.logger.warning(f"Job {query_id} não pode ser executado - dependências não atendidas")
+                print(f"⚠️  Job '{query_id}' não pode ser executado - dependências não atendidas")
                 failed_jobs.add(query_id)
                 continue
             
+            # Calcular tempo decorrido e estimativa
+            elapsed_time = datetime.now() - start_time
+            avg_time_per_job = elapsed_time.total_seconds() / max(i - 1, 1)
+            remaining_jobs = total_jobs - i + 1
+            estimated_remaining = avg_time_per_job * remaining_jobs
+            
+            print(f"⏳ [{i}/{total_jobs}] Executando: {query_id}")
+            print(f"⏱️  Tempo decorrido: {self._format_duration(elapsed_time.total_seconds())}")
+            if i > 1:
+                print(f"🔮 Estimativa restante: {self._format_duration(estimated_remaining)}")
+            print()
+            
+            job_start_time = datetime.now()
+            
             try:
-                self.logger.info(f"Executando job {query_id}")
                 result = self.run_job(query_id, options)
                 results.append(result)
                 
+                job_duration = datetime.now() - job_start_time
+                
                 if result.status == JobStatus.SUCCESS:
                     completed_jobs.add(query_id)
-                    self.logger.info(f"Job {query_id} executado com sucesso")
+                    print(f"✅ Job '{query_id}' executado com sucesso!")
+                    print(f"📈 Resultados: {result.rowcount or 0} linhas processadas")
+                    print(f"⏱️  Tempo: {self._format_duration(job_duration.total_seconds())}")
+                    if result.csv_file:
+                        print(f"💾 Arquivo CSV: {result.csv_file}")
+                    print()
                 else:
                     failed_jobs.add(query_id)
-                    self.logger.error(f"Job {query_id} falhou")
+                    print(f"❌ Job '{query_id}' falhou: {result.error}")
+                    print()
                     
             except Exception as e:
-                self.logger.error(f"Erro ao executar job {query_id}: {e}")
+                job_duration = datetime.now() - job_start_time
+                print(f"❌ Erro ao executar job '{query_id}': {e}")
+                print(f"⏱️  Tempo: {self._format_duration(job_duration.total_seconds())}")
+                print()
                 failed_jobs.add(query_id)
                 
                 # Criar JobRun de erro
@@ -385,7 +420,47 @@ class JobRunner:
                 job_run.finished_at = datetime.now().isoformat()
                 results.append(job_run)
         
+        # Resumo final
+        total_time = datetime.now() - start_time
+        success_count = len(completed_jobs)
+        error_count = len(failed_jobs)
+        
+        print("🎉 Pipeline executado!")
+        print("=" * 80)
+        print(f"📊 Total: {total_jobs} jobs")
+        print(f"✅ Sucessos: {success_count}")
+        print(f"❌ Erros: {error_count}")
+        print(f"⏱️  Tempo total: {self._format_duration(total_time.total_seconds())}")
+        print()
+        
         return results
+    
+    def _format_duration(self, seconds: float) -> str:
+        """
+        Formata duração em segundos para formato legível
+        
+        Args:
+            seconds: Duração em segundos
+            
+        Returns:
+            String formatada (ex: "2m 30s", "45s", "1h 15m")
+        """
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            remaining_seconds = seconds % 60
+            if remaining_seconds < 1:
+                return f"{minutes}m"
+            else:
+                return f"{minutes}m {remaining_seconds:.0f}s"
+        else:
+            hours = int(seconds // 3600)
+            remaining_minutes = int((seconds % 3600) // 60)
+            if remaining_minutes == 0:
+                return f"{hours}h"
+            else:
+                return f"{hours}h {remaining_minutes}m"
     
     def _get_all_required_jobs(self, query_ids: List[str]) -> List[str]:
         """

@@ -229,6 +229,48 @@ drop_table() {
     fi
 }
 
+# Executar jobs por tipo
+run_jobs_by_type() {
+    echo ""
+    echo "📋 Tipos de Jobs Disponíveis:"
+    echo "1) carga - Jobs de carregamento de dados"
+    echo "2) batimento - Jobs de validação"
+    echo "3) export-csv - Jobs de exportação para CSV"
+    echo "4) Voltar"
+    echo ""
+    
+    read -p "Escolha um tipo (1-4): " type_choice
+    
+    case $type_choice in
+        1)
+            job_type="carga"
+            ;;
+        2)
+            job_type="batimento"
+            ;;
+        3)
+            job_type="export-csv"
+            ;;
+        4)
+            return 0
+            ;;
+        *)
+            log_warning "Opção inválida"
+            return 1
+            ;;
+    esac
+    
+    log_run "Executando todos os jobs do tipo: $job_type"
+    echo ""
+    
+    if data-runner run-group --type "$job_type"; then
+        log_success "Jobs do tipo '$job_type' executados com sucesso!"
+    else
+        log_error "Erro ao executar jobs do tipo '$job_type'"
+        return 1
+    fi
+}
+
 # Menu principal
 show_menu() {
     echo ""
@@ -236,14 +278,15 @@ show_menu() {
     echo "1) Listar jobs disponíveis"
     echo "2) Executar job único"
     echo "3) Executar múltiplos jobs"
-    echo "4) Executar com opções (limite, dry-run)"
-    echo "5) Ver histórico de execuções"
-    echo "6) Inspecionar banco DuckDB"
-    echo "7) Remover tabela"
-    echo "8) Sair"
+    echo "4) Executar jobs por tipo"
+    echo "5) Executar com opções (limite, dry-run)"
+    echo "6) Ver histórico de execuções"
+    echo "7) Inspecionar banco DuckDB"
+    echo "8) Remover tabela"
+    echo "9) Sair"
     echo ""
     
-    read -p "Escolha uma opção (1-8): " choice
+    read -p "Escolha uma opção (1-9): " choice
     
     case $choice in
         1)
@@ -256,18 +299,21 @@ show_menu() {
             run_multiple_jobs
             ;;
         4)
-            run_with_options
+            run_jobs_by_type
             ;;
         5)
-            show_history
+            run_with_options
             ;;
         6)
-            inspect_database
+            show_history
             ;;
         7)
-            drop_table
+            inspect_database
             ;;
         8)
+            drop_table
+            ;;
+        9)
             log_success "Data-Runner finalizado!"
             exit 0
             ;;
@@ -316,6 +362,14 @@ run_direct() {
                 log_run "Executando jobs: $jobs"
                 data-runner run-batch $jobs
                 ;;
+            "group"|"type")
+                if [ -z "$2" ]; then
+                    log_error "Tipo de job necessário. Use: ./run.sh group <carga|batimento|export-csv>"
+                    exit 1
+                fi
+                log_run "Executando jobs do tipo: $2"
+                data-runner run-group --type "$2"
+                ;;
             "history"|"hist")
                 show_history
                 ;;
@@ -349,10 +403,16 @@ run_direct() {
                 echo "  ./run.sh list               # Listar jobs"
                 echo "  ./run.sh run <job_id>       # Executar job"
                 echo "  ./run.sh batch <job1,job2>  # Executar múltiplos jobs"
+                echo "  ./run.sh group <tipo>       # Executar jobs por tipo"
                 echo "  ./run.sh history            # Ver histórico"
                 echo "  ./run.sh inspect            # Inspecionar banco"
                 echo "  ./run.sh drop <table_name>  # Remover tabela"
                 echo "  ./run.sh help               # Mostrar ajuda"
+                echo ""
+                echo "Tipos de job disponíveis:"
+                echo "  carga       - Jobs de carregamento de dados"
+                echo "  batimento   - Jobs de validação"
+                echo "  export-csv  - Jobs de exportação para CSV"
                 ;;
             *)
                 log_error "Comando desconhecido: $1"
