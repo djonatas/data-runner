@@ -192,6 +192,38 @@ inspect_database() {
     fi
 }
 
+# Remover tabela
+drop_table() {
+    echo ""
+    inspect_database
+    echo ""
+    
+    read -p "Digite o nome da tabela para remover: " table_name
+    
+    if [ -z "$table_name" ]; then
+        log_error "Nome da tabela não pode estar vazio"
+        return 1
+    fi
+    
+    log_warning "⚠️  ATENÇÃO: Esta operação irá remover permanentemente a tabela '$table_name'"
+    read -p "Tem certeza? Digite 'SIM' para confirmar: " confirmation
+    
+    if [ "$confirmation" != "SIM" ]; then
+        log_info "Operação cancelada"
+        return 0
+    fi
+    
+    log_run "Removendo tabela: $table_name"
+    echo ""
+    
+    if data-runner drop-table --table "$table_name" --confirm; then
+        log_success "Tabela '$table_name' removida com sucesso!"
+    else
+        log_error "Erro ao remover tabela '$table_name'"
+        return 1
+    fi
+}
+
 # Menu principal
 show_menu() {
     echo ""
@@ -202,10 +234,11 @@ show_menu() {
     echo "4) Executar com opções (limite, dry-run)"
     echo "5) Ver histórico de execuções"
     echo "6) Inspecionar banco DuckDB"
-    echo "7) Sair"
+    echo "7) Remover tabela"
+    echo "8) Sair"
     echo ""
     
-    read -p "Escolha uma opção (1-7): " choice
+    read -p "Escolha uma opção (1-8): " choice
     
     case $choice in
         1)
@@ -227,6 +260,9 @@ show_menu() {
             inspect_database
             ;;
         7)
+            drop_table
+            ;;
+        8)
             log_success "Data-Runner finalizado!"
             exit 0
             ;;
@@ -281,6 +317,19 @@ run_direct() {
             "inspect"|"db")
                 inspect_database
                 ;;
+            "drop"|"drop-table")
+                if [ -z "$2" ]; then
+                    log_error "Nome da tabela necessário. Use: ./run.sh drop <table_name>"
+                    exit 1
+                fi
+                log_warning "⚠️  ATENÇÃO: Esta operação irá remover permanentemente a tabela '$2'"
+                read -p "Tem certeza? Digite 'SIM' para confirmar: " confirmation
+                if [ "$confirmation" = "SIM" ]; then
+                    data-runner drop-table --table "$2" --confirm
+                else
+                    log_info "Operação cancelada"
+                fi
+                ;;
             "help"|"-h"|"--help")
                 echo "Data-Runner Executor - Uso:"
                 echo "  ./run.sh                    # Modo interativo"
@@ -289,6 +338,7 @@ run_direct() {
                 echo "  ./run.sh batch <job1,job2>  # Executar múltiplos jobs"
                 echo "  ./run.sh history            # Ver histórico"
                 echo "  ./run.sh inspect            # Inspecionar banco"
+                echo "  ./run.sh drop <table_name>  # Remover tabela"
                 echo "  ./run.sh help               # Mostrar ajuda"
                 ;;
             *)

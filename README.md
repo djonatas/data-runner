@@ -429,6 +429,62 @@ data-runner run --id "job_inexistente"
 🔧 Use 'data-runner list-jobs' para ver todos os jobs disponíveis
 ```
 
+#### 🗑️ Remover Tabela
+
+```bash
+# Via CLI
+data-runner drop-table --table "stg_products"
+
+# Via script
+./run.sh drop "stg_products"
+```
+
+**Retorno esperado:**
+
+```
+🗑️ Remoção de Tabela
+==================================================
+Tabela: stg_products
+Linhas: 1,500
+
+⚠️ Tem certeza que deseja remover a tabela 'stg_products'? [y/N]: y
+
+✅ Tabela 'stg_products' removida com sucesso!
+```
+
+**Com confirmação automática:**
+
+```bash
+# Via CLI com --confirm
+data-runner drop-table --table "stg_products" --confirm
+
+# Via script (pergunta confirmação)
+./run.sh drop "stg_products"
+```
+
+**Retorno esperado:**
+
+```
+🗑️ Remoção de Tabela
+==================================================
+Tabela: stg_products
+Linhas: 1,500
+
+✅ Tabela 'stg_products' removida com sucesso!
+```
+
+**Tentativa de remover tabela inexistente:**
+
+```bash
+data-runner drop-table --table "tabela_inexistente"
+```
+
+**Retorno esperado:**
+
+```
+❌ Tabela 'tabela_inexistente' não encontrada
+```
+
 ## 📁 Estrutura do Projeto
 
 ```
