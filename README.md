@@ -2,7 +2,25 @@
 
 🎯 **Executor de consultas/processos parametrizado por JSON**
 
-Data-Runner é uma ferramenta CLI que permite executar consultas SQL em diferentes bancos de dados através de arquivos JSON de configuração. Com suporte a variáveis de ambiente, sistema de dependências entre jobs, conexões Oracle via TNS Names, leitura de arquivos CSV e muito mais.
+Data-Runner é uma ferramenta CLI robusta para **orquestração de pipelines de dados** que automatiza a execução de consultas SQL, transformações e carregamentos de dados entre diferentes fontes. 
+
+**O que o Data-Runner faz:**
+- 🔄 **Automatiza pipelines de dados** através de arquivos JSON de configuração
+- 🗄️ **Conecta múltiplas fontes** (PostgreSQL, MySQL, SQL Server, Oracle, CSV, SQLite)
+- 📊 **Executa consultas SQL** parametrizadas com variáveis dinâmicas
+- 🏗️ **Constrói data warehouses** locais usando DuckDB como repositório central
+- 🔗 **Gerencia dependências** entre jobs para execução ordenada e paralela
+- 📈 **Monitora execuções** com auditoria completa e histórico detalhado
+- 🎯 **Exporta resultados** para CSV com configurações personalizáveis
+- ⚡ **Executa em lote** jobs individuais, por tipo ou grupos configurados
+
+**Casos de uso típicos:**
+- Migração de dados entre sistemas
+- ETL/ELT automatizado para data warehouses
+- Consolidação de dados de múltiplas fontes
+- Relatórios automatizados com exportação
+- Validação e batimento de dados
+- Pipelines de dados para análise e BI
 
 ## 🚀 Quick Start
 
@@ -10,7 +28,7 @@ Data-Runner é uma ferramenta CLI que permite executar consultas SQL em diferent
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/data-runner.git
+git clone https://github.com/djonatas/data-runner.git
 cd data-runner
 
 # Instalação automática
@@ -53,6 +71,7 @@ data-runner --help
 ## 📋 Comandos CLI
 
 ### Listar Jobs
+
 ```bash
 # Listar todos os jobs
 data-runner list-jobs
@@ -62,6 +81,7 @@ data-runner list-groups
 ```
 
 ### Executar Jobs
+
 ```bash
 # Executar job único
 data-runner run --id meu_job
@@ -83,6 +103,7 @@ data-runner run-group-config --group meu_grupo
 ```
 
 ### Histórico e Inspeção
+
 ```bash
 # Ver histórico de execuções
 data-runner history
@@ -98,6 +119,7 @@ data-runner inspect --table minha_tabela
 ```
 
 ### Gerenciamento
+
 ```bash
 # Remover tabela
 data-runner drop-table --table tabela_antiga
@@ -174,6 +196,7 @@ POSTGRES_PASSWORD=minha_senha
 ## 🔧 Tipos de Conexão
 
 ### PostgreSQL
+
 ```json
 {
   "name": "postgres_db",
@@ -190,6 +213,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### MySQL
+
 ```json
 {
   "name": "mysql_db",
@@ -206,6 +230,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### SQL Server
+
 ```json
 {
   "name": "mssql_db",
@@ -222,6 +247,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### Oracle
+
 ```json
 {
   "name": "oracle_db",
@@ -238,6 +264,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### Oracle TNS Names
+
 ```json
 {
   "name": "oracle_tns",
@@ -252,6 +279,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### CSV
+
 ```json
 {
   "name": "csv_data",
@@ -268,6 +296,7 @@ POSTGRES_PASSWORD=minha_senha
 ## 📊 Tipos de Job
 
 ### Carga (carga)
+
 ```json
 {
   "queryId": "importar_usuarios",
@@ -279,6 +308,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### Batimento (batimento)
+
 ```json
 {
   "queryId": "validar_dados",
@@ -290,6 +320,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### Export CSV (export-csv)
+
 ```json
 {
   "queryId": "exportar_relatorio",
@@ -347,6 +378,7 @@ POSTGRES_PASSWORD=minha_senha
 ## 🔐 Variáveis de Ambiente
 
 ### Uso em Conexões
+
 ```json
 {
   "params": {
@@ -357,6 +389,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### Uso em Jobs
+
 ```json
 {
   "variables": {
@@ -371,18 +404,21 @@ POSTGRES_PASSWORD=minha_senha
 ## 🛠️ Scripts de Ajuda
 
 ### install.sh
+
 ```bash
 # Instalação completa
 ./install.sh
 ```
 
 ### setup.sh
+
 ```bash
 # Setup e configuração
 ./setup.sh
 ```
 
 ### run.sh
+
 ```bash
 # Execução interativa
 ./run.sh
@@ -395,6 +431,7 @@ POSTGRES_PASSWORD=minha_senha
 ```
 
 ### test.sh
+
 ```bash
 # Testes e validação
 ./test.sh
@@ -403,6 +440,7 @@ POSTGRES_PASSWORD=minha_senha
 ## 📚 Exemplos de Uso
 
 ### Execução Básica
+
 ```bash
 # Listar jobs
 data-runner list-jobs
@@ -415,6 +453,7 @@ data-runner inspect --table usuarios_importados
 ```
 
 ### Execução com Limites
+
 ```bash
 # Executar com limite de linhas
 data-runner run --id importar_usuarios --limit 1000
@@ -424,6 +463,7 @@ data-runner run --id importar_usuarios --dry-run
 ```
 
 ### Execução em Lote
+
 ```bash
 # Executar múltiplos jobs
 data-runner run-batch --ids importar_usuarios,processar_dados,exportar_relatorio
@@ -436,6 +476,7 @@ data-runner run-group-config --group pipeline_completo
 ```
 
 ### Monitoramento
+
 ```bash
 # Ver histórico
 data-runner history
@@ -450,6 +491,7 @@ data-runner inspect --table usuarios_importados
 ## 🔍 Troubleshooting
 
 ### Erro de Conexão
+
 ```bash
 # Verificar configurações
 data-runner list-jobs
@@ -459,6 +501,7 @@ data-runner list-jobs
 ```
 
 ### Erro de SQL
+
 ```bash
 # Executar em modo dry-run
 data-runner run --id problema_job --dry-run
@@ -468,6 +511,7 @@ python -m app run --id problema_job --verbose
 ```
 
 ### Problemas com DuckDB
+
 ```bash
 # Inspecionar banco
 data-runner inspect
@@ -540,7 +584,7 @@ data-runner/
 
 ```bash
 # Clone e setup
-git clone https://github.com/seu-usuario/data-runner.git
+git clone https://github.com/djonatas/data-runner.git
 cd data-runner
 
 # Ambiente virtual
@@ -592,6 +636,4 @@ MIT License - veja arquivo LICENSE para detalhes.
 
 ## 📞 Suporte
 
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/data-runner/issues)
-- **Documentação**: [Wiki](https://github.com/seu-usuario/data-runner/wiki)
-- **Exemplos**: [Exemplos](https://github.com/seu-usuario/data-runner/examples)
+- **Issues**: [GitHub Issues](https://github.com/djonatas/data-runner/issues)
