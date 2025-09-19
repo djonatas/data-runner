@@ -38,6 +38,8 @@ def list_jobs():
                 target_table = f"val_{job.query_id}"
             elif job.type.value == "export-csv":
                 target_table = f"CSV: {job.csv_file or 'N/A'}"
+            elif job.type.value == "validation":
+                target_table = f"Validation: {job.validation_file or 'N/A'}"
             else:
                 target_table = "N/A"
             
@@ -87,6 +89,20 @@ def run(query_id: str, duckdb_path: Optional[str], dry_run: bool,
         # Mostrar arquivo CSV se aplicável
         if result.csv_file:
             click.echo(f"Arquivo CSV: {result.csv_file}")
+        
+        # Mostrar resultado de validação se aplicável
+        if result.validation_file:
+            click.echo(f"Arquivo de Validação: {result.validation_file}")
+        
+        if result.validation_result:
+            import json
+            try:
+                validation_data = json.loads(result.validation_result)
+                click.echo(f"Resultado da Validação: {validation_data.get('message', 'N/A')}")
+                if not validation_data.get('success', False):
+                    click.echo(f"⚠️  Validação falhou: {validation_data.get('message', 'Erro desconhecido')}")
+            except:
+                click.echo(f"Resultado da Validação: {result.validation_result}")
         
         if result.error:
             click.echo(f"❌ Erro: {result.error}")
@@ -155,7 +171,7 @@ def run_batch(query_ids: str, duckdb_path: Optional[str], dry_run: bool,
 
 
 @cli.command(name='run-group')
-@click.option('--type', 'job_type', required=True, help='Tipo de job para agrupar (carga, batimento, export-csv)')
+@click.option('--type', 'job_type', required=True, help='Tipo de job para agrupar (carga, batimento, export-csv, validation)')
 @click.option('--duckdb', 'duckdb_path', help='Caminho personalizado para o DuckDB')
 @click.option('--dry-run', is_flag=True, help='Mostra o que faria sem executar')
 @click.option('--limit', type=int, help='Limita o número de linhas retornadas')
@@ -336,6 +352,8 @@ def history(query_id: Optional[str], limit: int):
             # Determinar destino baseado no tipo
             if row['type'] == 'export-csv' and row['csv_file']:
                 destino = f"CSV: {row['csv_file']}"
+            elif row['type'] == 'validation' and row['validation_file']:
+                destino = f"Validation: {row['validation_file']}"
             else:
                 destino = row['target_table'] or 'N/A'
             
@@ -345,6 +363,16 @@ def history(query_id: Optional[str], limit: int):
             
             if row['error']:
                 click.echo(f"    Erro: {row['error']}")
+            
+            # Mostrar resultado de validação se disponível
+            if row['type'] == 'validation' and row['validation_result']:
+                import json
+                try:
+                    validation_data = json.loads(row['validation_result'])
+                    validation_icon = "✅" if validation_data.get('success', False) else "⚠️"
+                    click.echo(f"    {validation_icon} Validação: {validation_data.get('message', 'N/A')}")
+                except:
+                    pass
     
     except Exception as e:
         click.echo(f"❌ Erro ao buscar histórico: {e}", err=True)

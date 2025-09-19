@@ -6,6 +6,7 @@
 
 - [🔄 Importação de Dados](#-importação-de-dados)
 - [📤 Exportação de Dados](#-exportação-de-dados)
+- [🔍 Validação de Dados](#-validação-de-dados)
 - [📊 Monitoramento e Inspeção](#-monitoramento-e-inspeção)
 - [⚙️ Gerenciamento](#️-gerenciamento)
 - [🔧 Utilitários](#-utilitários)
@@ -327,6 +328,104 @@ data-runner run-group-config --group relatorios_semanais --limit 5000
 --------------------------------------------------------------------------------
 Total: 3 jobs
 Sucessos: 3
+Erros: 0
+```
+
+---
+
+## 🔍 Validação de Dados
+
+### 🎯 Executar Job de Validação
+
+```bash
+# Executar validação individual
+data-runner run --id validate_user_data
+
+# Executar com limite de linhas
+data-runner run --id validate_user_data --limit 1000
+
+# Executar em modo dry-run
+data-runner run --id validate_user_data --dry-run
+```
+
+**Parâmetros**: Mesmos parâmetros do comando `run` para outros tipos de job.
+
+**Exemplo de saída**:
+
+```
+🎯 Execução Concluída:
+Run ID: 12347
+Status: success
+Linhas processadas: 1500
+Tabela alvo: N/A
+Arquivo de Validação: user_data_validation.py
+Resultado da Validação: Validação de usuários passou: 6 verificação(ões) executadas com sucesso
+✅ Execução bem-sucedida!
+```
+
+---
+
+### 🏷️ Executar Todas as Validações
+
+```bash
+# Executar todos os jobs de validation
+data-runner run-group --type validation
+
+# Executar com limite
+data-runner run-group --type validation --limit 1000
+```
+
+**Parâmetros**: Mesmos parâmetros do comando `run-group`.
+
+**Exemplo de saída**:
+
+```
+🎯 Executando Jobs do Tipo: validation
+============================================================
+📋 Jobs encontrados: 2
+  - validate_user_data
+  - validate_sales_data
+
+📊 Resumo da Execução em Grupo:
+================================================================================
+✅ validate_user_data: success (1500 linhas)
+⚠️  validate_sales_data: success (800 linhas) - Algumas verificações falharam
+--------------------------------------------------------------------------------
+Total: 2 jobs
+Sucessos: 2
+Erros: 0
+```
+
+---
+
+### 🎭 Executar Grupos de Validação Configurados
+
+```bash
+# Executar grupo de validações configurado
+data-runner run-group-config --group validations
+
+# Executar com limite
+data-runner run-group-config --group validations --limit 2000
+```
+
+**Parâmetros**: Mesmos parâmetros do comando `run-group-config`.
+
+**Exemplo de saída**:
+
+```
+🎯 Executando Grupo de Jobs: validations
+============================================================
+📝 Descrição: Executa todas as validações de qualidade
+📋 Jobs: validate_user_data, validate_sales_data
+📊 Total: 2 jobs
+
+📊 Resumo da Execução do Grupo:
+================================================================================
+✅ validate_user_data: success (1500 linhas)
+⚠️  validate_sales_data: success (800 linhas)
+--------------------------------------------------------------------------------
+Total: 2 jobs
+Sucessos: 2
 Erros: 0
 ```
 

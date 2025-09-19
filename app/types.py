@@ -13,6 +13,7 @@ class JobType(Enum):
     CARGA = "carga"
     BATIMENTO = "batimento"
     EXPORT_CSV = "export-csv"
+    VALIDATION = "validation"
 
 
 class JobStatus(Enum):
@@ -88,6 +89,9 @@ class Job:
     csv_separator: Optional[str] = None  # Separador do CSV (padrão: ',')
     csv_encoding: Optional[str] = None  # Encoding do arquivo (padrão: 'utf-8')
     csv_include_header: Optional[bool] = None  # Se inclui cabeçalho (padrão: True)
+    # Parâmetros específicos para validation
+    validation_file: Optional[str] = None  # Caminho do arquivo Python de validação
+    main_query: Optional[str] = None  # queryId da query principal para validação
 
 
 @dataclass
@@ -104,6 +108,8 @@ class JobRun:
     target_table: Optional[str] = None
     connection: Optional[str] = None
     csv_file: Optional[str] = None  # Arquivo CSV exportado (para jobs export-csv)
+    validation_file: Optional[str] = None  # Arquivo de validação executado
+    validation_result: Optional[str] = None  # Resultado da validação (JSON string)
 
     @classmethod
     def create_new(cls, query_id: str, job_type: JobType) -> "JobRun":

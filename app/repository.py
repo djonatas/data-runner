@@ -44,7 +44,9 @@ class DuckDBRepository:
             error VARCHAR,
             target_table VARCHAR,
             connection VARCHAR,
-            csv_file VARCHAR
+            csv_file VARCHAR,
+            validation_file VARCHAR,
+            validation_result VARCHAR
         )
         """
         
@@ -117,8 +119,9 @@ class DuckDBRepository:
             insert_sql = """
             INSERT OR REPLACE INTO audit_job_runs 
             (run_id, query_id, type, started_at, finished_at, status, 
-             rowcount, error, target_table, connection, csv_file)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             rowcount, error, target_table, connection, csv_file, 
+             validation_file, validation_result)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             
             conn.execute(insert_sql, (
@@ -132,7 +135,9 @@ class DuckDBRepository:
                 job_run.error,
                 job_run.target_table,
                 job_run.connection,
-                job_run.csv_file
+                job_run.csv_file,
+                job_run.validation_file,
+                job_run.validation_result
             ))
     
     def get_job_runs(self, query_id: Optional[str] = None, limit: int = 100) -> pd.DataFrame:

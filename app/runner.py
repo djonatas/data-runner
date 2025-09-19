@@ -17,6 +17,7 @@ from .repository import DuckDBRepository
 from .variable_processor import VariableProcessor
 from .dependency_manager import DependencyManager
 from .env_processor import EnvironmentVariableProcessor
+from .validation_engine import ValidationEngine
 from .sql_utils import (
     expand_env_vars, apply_limit, sanitize_table_name, 
     get_default_target_table, truncate_sql_for_log
@@ -39,6 +40,7 @@ class JobRunner:
         self.repository: Optional[DuckDBRepository] = None
         self.variable_processor: Optional[VariableProcessor] = None
         self.dependency_manager: Optional[DependencyManager] = None
+        self.validation_engine: Optional[ValidationEngine] = None
         
         # Configurar logging
         logging.basicConfig(
@@ -82,13 +84,16 @@ class JobRunner:
                 errors = self.dependency_manager.validate_dependencies()
                 if errors:
                     self.logger.warning(f"Dependências inválidas encontradas: {errors}")
+                else:
+                    self.logger.info("Dependências validadas com sucesso")
                 
                 # Detectar ciclos
                 cycles = self.dependency_manager.detect_cycles()
                 if cycles:
                     self.logger.warning(f"Ciclos detectados: {cycles}")
-                else:
-                    self.logger.info("Dependências validadas com sucesso")
+            
+            # Inicializar motor de validação
+            self.validation_engine = ValidationEngine()
             
             self.logger.info("Configurações carregadas com sucesso")
             
@@ -344,6 +349,60 @@ class JobRunner:
                     
                     job_run.csv_file = csv_path
                     self.logger.info(f"Dados exportados para CSV: {csv_path}")
+                
+                elif job.type == JobType.VALIDATION:
+                    # Para validation, executar validação personalizada
+                    if not job.validation_file:
+                        raise ValueError("Job validation deve ter 'validation_file' definido")
+                    
+                    if not job.main_query:
+                        raise ValueError("Job validation deve ter 'main_query' definido")
+                    
+                    # Buscar dados da query principal
+                    main_job = self.get_job(job.main_query)
+                    if not main_job:
+                        raise ValueError(f"Job principal não encontrado: {job.main_query}")
+                    
+                    main_connection_config = self.get_connection(main_job.connection)
+                    if not main_connection_config:
+                        raise ValueError(f"Conexão do job principal não encontrada: {main_job.connection}")
+                    
+                    # Executar query principal
+                    main_db_connection = ConnectionFactory.create_connection(main_connection_config)
+                    try:
+                        # Processar SQL da query principal
+                        main_sql = expand_env_vars(main_job.sql)
+                        if self.variable_processor:
+                            main_sql = self.variable_processor.process_sql(main_sql)
+                        
+                        main_df = main_db_connection.execute_query(main_sql)
+                        self.logger.info(f"Dados da query principal carregados: {len(main_df)} linhas")
+                        
+                        # Executar validação
+                        context = {
+                            "main_query_id": job.main_query,
+                            "validation_query_id": query_id,
+                            "main_connection": main_job.connection,
+                            "validation_connection": job.connection
+                        }
+                        
+                        validation_result = self.validation_engine.execute_validation(
+                            job.validation_file, main_df, context
+                        )
+                        
+                        # Armazenar resultado da validação
+                        job_run.validation_file = job.validation_file
+                        job_run.validation_result = validation_result.to_json()
+                        job_run.rowcount = len(main_df)
+                        
+                        if validation_result.success:
+                            self.logger.info(f"Validação executada com sucesso: {validation_result.message}")
+                        else:
+                            self.logger.warning(f"Validação falhou: {validation_result.message}")
+                            # Não falha o job, apenas registra o resultado
+                        
+                    finally:
+                        main_db_connection.close()
                 
                 job_run.status = JobStatus.SUCCESS
                 job_run.rowcount = rowcount

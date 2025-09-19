@@ -321,6 +321,19 @@ POSTGRES_PASSWORD=minha_senha
 }
 ```
 
+### Validação (validation)
+
+```json
+{
+  "queryId": "validar_dados_usuarios",
+  "type": "validation",
+  "connection": "sqlite_dev",
+  "main_query": "importar_usuarios",
+  "validation_file": "user_data_validation.py",
+  "dependencies": ["importar_usuarios"]
+}
+```
+
 ### Export CSV (export-csv)
 
 ```json
@@ -335,6 +348,122 @@ POSTGRES_PASSWORD=minha_senha
   "csv_include_header": true
 }
 ```
+
+## 🔍 Motor de Validação de Dados
+
+O Data-Runner inclui um motor de validação que permite executar validações personalizadas em Python sobre os dados carregados.
+
+### Como Funciona
+
+1. **Configuração**: Define um job do tipo `validation` no `jobs.json`
+2. **Query Principal**: Especifica qual job (`main_query`) fornecerá os dados
+3. **Arquivo Python**: Cria um arquivo Python com a lógica de validação
+4. **Execução**: O motor carrega dinamicamente o arquivo e executa a validação
+
+### Estrutura do Arquivo de Validação
+
+```python
+# validations/minha_validacao.py
+from app.validation_engine import ValidationResult
+import pandas as pd
+
+def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationResult:
+    """
+    Função principal de validação
+    
+    Args:
+        data: DataFrame com os dados a serem validados
+        context: Contexto adicional (main_query_id, validation_query_id, etc.)
+        
+    Returns:
+        ValidationResult com o resultado da validação
+    """
+    
+    # Sua lógica de validação aqui
+    if data.empty:
+        return ValidationResult(
+            success=False,
+            message="Nenhum dado encontrado",
+            details={"row_count": 0}
+        )
+    
+    # Exemplo: verificar se há dados nulos
+    null_count = data.isnull().sum().sum()
+    
+    if null_count > 0:
+        return ValidationResult(
+            success=False,
+            message=f"Encontrados {null_count} valores nulos",
+            details={"null_count": int(null_count)}
+        )
+    
+    return ValidationResult(
+        success=True,
+        message="Validação passou com sucesso",
+        details={"row_count": len(data)}
+    )
+```
+
+### Parâmetros de Validação
+
+| Parâmetro | Tipo | Obrigatório | Descrição |
+|-----------|------|-------------|-----------|
+| `validation_file` | string | Sim | Caminho do arquivo Python de validação |
+| `main_query` | string | Sim | ID do job que fornece os dados para validação |
+| `connection` | string | Sim | Conexão para contexto (geralmente sqlite_dev) |
+| `dependencies` | array | Não | Lista de jobs que devem executar antes |
+
+### Exemplos Práticos
+
+#### Validação de Dados de Usuários
+```json
+{
+  "queryId": "validate_user_data",
+  "type": "validation",
+  "connection": "sqlite_dev",
+  "main_query": "load_users",
+  "validation_file": "user_data_validation.py",
+  "dependencies": ["load_users"]
+}
+```
+
+#### Validação de Dados de Vendas
+```json
+{
+  "queryId": "validate_sales_data",
+  "type": "validation",
+  "connection": "sqlite_dev",
+  "main_query": "load_sales_csv",
+  "validation_file": "example_validation.py",
+  "dependencies": ["load_sales_csv"]
+}
+```
+
+### Execução de Validações
+
+```bash
+# Executar validação individual
+data-runner run --id validate_user_data
+
+# Executar todas as validações
+data-runner run-group --type validation
+
+# Executar grupo de validações
+data-runner run-group-config --group validations
+```
+
+### Resultados de Validação
+
+Os resultados são armazenados na tabela de auditoria e incluem:
+- **Status**: Sucesso/Falha da validação
+- **Mensagem**: Descrição do resultado
+- **Detalhes**: Informações detalhadas em JSON
+- **Contexto**: Metadados sobre a execução
+
+### Exemplos de Validações Incluídas
+
+- **`example_validation.py`**: Validação genérica com verificações básicas
+- **`user_data_validation.py`**: Validação específica para dados de usuários (email, telefone, CPF)
 
 ## 🔄 Sistema de Dependências
 
