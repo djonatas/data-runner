@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 import logging
 from datetime import datetime
+from .progress_bar import create_validation_progress_bar
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +128,14 @@ class ValidationEngine:
             failed_records = []
             error_records = []
             
+            # Criar e iniciar barra de progresso
+            progress_bar = create_validation_progress_bar(
+                total=len(data),
+                validation_file=validation_file,
+                output_table=None
+            )
+            progress_bar.start()
+            
             for index, record in data.iterrows():
                 try:
                     # Converter Series para dict e adicionar índice
@@ -169,6 +178,9 @@ class ValidationEngine:
                             'message': validation_result.message,
                             'details': validation_result.details
                         })
+                    
+                    # Atualizar barra de progresso com resultado
+                    progress_bar.update_with_result(validation_result.success)
                 
                 except Exception as e:
                     error_records.append({
@@ -177,6 +189,12 @@ class ValidationEngine:
                         'error': str(e)
                     })
                     logger.error(f"Erro na validação do registro {index}: {e}")
+                    
+                    # Atualizar barra de progresso (erro = falha)
+                    progress_bar.update_with_result(False)
+            
+            # Finalizar barra de progresso
+            progress_bar.finish()
             
             # Determinar resultado geral
             total_records = len(data)
@@ -260,6 +278,14 @@ class ValidationEngine:
             error_records = []
             executed_at = datetime.now().isoformat()
             
+            # Criar e iniciar barra de progresso
+            progress_bar = create_validation_progress_bar(
+                total=len(data),
+                validation_file=validation_file,
+                output_table=output_table
+            )
+            progress_bar.start()
+            
             for index, record in data.iterrows():
                 try:
                     # Converter Series para dict e adicionar índice
@@ -316,6 +342,9 @@ class ValidationEngine:
                             'message': validation_result.message,
                             'details': validation_result.details
                         })
+                    
+                    # Atualizar barra de progresso com resultado
+                    progress_bar.update_with_result(validation_result.success)
                 
                 except Exception as e:
                     error_records.append({
@@ -324,6 +353,9 @@ class ValidationEngine:
                         'error': str(e)
                     })
                     logger.error(f"Erro na validação do registro {index}: {e}")
+                    
+                    # Atualizar barra de progresso (erro = falha)
+                    progress_bar.update_with_result(False)
             
             # Salvar resultados na tabela de output se configurado
             if repository and output_table and validation_records:
@@ -334,6 +366,9 @@ class ValidationEngine:
                 
                 repository.save_validation_records_batch(output_table, validation_objects)
                 logger.info(f"Salvos {len(validation_records)} registros de validação na tabela {output_table}")
+            
+            # Finalizar barra de progresso
+            progress_bar.finish()
             
             # Determinar resultado geral
             total_records = len(data)

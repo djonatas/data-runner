@@ -560,6 +560,35 @@ data-runner run-group --type validation
 data-runner run-group-config --group validations
 ```
 
+### Barra de Progresso
+
+Durante a execução de validações por registro, o sistema exibe uma barra de progresso em tempo real:
+
+```
+🚀 Validando 100 registros → user_validation_results
+============================================================
+[████████████████████████████████████████] 100.0% (100/100) | Tempo: 3.2s | 31.3 reg/s
+✅ Validação concluída!
+   📊 Total processado: 100 registros
+   ✅ Sucessos: 95 (95.0%)
+   ❌ Erros: 5
+   ⏱️  Tempo total: 3.2s
+   🚀 Velocidade: 31.3 registros/segundo
+   💾 Resultados salvos em: user_validation_results
+============================================================
+```
+
+#### Informações da Barra de Progresso
+
+- **📊 Porcentagem**: Progresso atual da validação
+- **📈 Barra visual**: Representação gráfica do progresso
+- **🔢 Contadores**: Registros processados vs. total
+- **⏱️ Tempo decorrido**: Tempo desde o início
+- **🎯 ETA**: Estimativa de tempo restante
+- **🚀 Velocidade**: Registros processados por segundo
+- **✅/❌ Resultados**: Contadores de sucessos e erros
+- **💾 Output**: Tabela onde os resultados foram salvos
+
 ### Tabela de Output de Validação
 
 Quando configurado com `output_table` e `pkey_field`, os resultados são salvos em uma tabela estruturada:
