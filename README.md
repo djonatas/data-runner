@@ -2,9 +2,10 @@
 
 🎯 **Executor de consultas/processos parametrizado por JSON**
 
-Data-Runner é uma ferramenta CLI robusta para **orquestração de pipelines de dados** que automatiza a execução de consultas SQL, transformações e carregamentos de dados entre diferentes fontes. 
+Data-Runner é uma ferramenta CLI robusta para **orquestração de pipelines de dados** que automatiza a execução de consultas SQL, transformações e carregamentos de dados entre diferentes fontes.
 
 **O que o Data-Runner faz:**
+
 - 🔄 **Automatiza pipelines de dados** através de arquivos JSON de configuração
 - 🗄️ **Conecta múltiplas fontes** (PostgreSQL, MySQL, SQL Server, Oracle, CSV, SQLite)
 - 📊 **Executa consultas SQL** parametrizadas com variáveis dinâmicas
@@ -15,6 +16,7 @@ Data-Runner é uma ferramenta CLI robusta para **orquestração de pipelines de 
 - ⚡ **Executa em lote** jobs individuais, por tipo ou grupos configurados
 
 **Casos de uso típicos:**
+
 - Migração de dados entre sistemas
 - ETL/ELT automatizado para data warehouses
 - Consolidação de dados de múltiplas fontes
