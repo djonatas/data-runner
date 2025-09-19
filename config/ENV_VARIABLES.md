@@ -7,6 +7,7 @@ O Data-Runner suporta o uso de variáveis de ambiente em arquivos de configuraç
 O Data-Runner carrega automaticamente o arquivo `.env` quando iniciado, não sendo necessário configurar manualmente as variáveis de ambiente.
 
 **Log de carregamento:**
+
 ```
 INFO - Carregando variáveis de ambiente de: /path/to/.env
 ```
@@ -37,6 +38,7 @@ Use o padrão `${env:VARIABLE_NAME}` em qualquer campo de string nos arquivos de
 ## Variáveis Recomendadas
 
 ### PostgreSQL
+
 ```bash
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -47,6 +49,7 @@ POSTGRES_SCHEMA=public
 ```
 
 ### MySQL
+
 ```bash
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
@@ -57,6 +60,7 @@ MYSQL_SCHEMA=my_schema
 ```
 
 ### SQL Server
+
 ```bash
 MSSQL_HOST=localhost
 MSSQL_PORT=1433
@@ -66,6 +70,7 @@ MSSQL_PASSWORD=my_password
 ```
 
 ### Oracle
+
 ```bash
 ORACLE_HOST=localhost
 ORACLE_PORT=1521
@@ -76,6 +81,7 @@ ORACLE_SCHEMA=HR
 ```
 
 ### Configurações Gerais
+
 ```bash
 DEFAULT_DUCKDB_PATH=./data/warehouse.duckdb
 TENANT_UID=f9fc6810-691b-4102-8296-7bd19687ed5b
@@ -85,6 +91,7 @@ ENVIRONMENT=development
 ## Como Configurar
 
 ### 1. Criar arquivo .env
+
 ```bash
 # Crie o arquivo .env na raiz do projeto
 touch .env
@@ -94,15 +101,18 @@ nano .env
 ```
 
 ### 2. Carregamento Automático
+
 O Data-Runner carrega automaticamente o arquivo `.env` quando iniciado. Não é necessário carregar manualmente as variáveis.
 
 **Locais onde o Data-Runner procura o arquivo .env:**
+
 1. `./.env` (diretório atual)
 2. `../.env` (diretório pai)
 3. `./data-runner/.env` (raiz do projeto)
 4. `~/.env` (home do usuário)
 
 ### 3. Usar no Data-Runner
+
 ```bash
 # As variáveis serão automaticamente carregadas e substituídas
 data-runner list-jobs
@@ -110,7 +120,9 @@ data-runner run --id meu_job
 ```
 
 ### 4. Carregamento Manual (Opcional)
+
 Se preferir carregar manualmente:
+
 ```bash
 # Linux/Mac
 export $(cat .env | xargs)
@@ -122,6 +134,7 @@ Get-Content .env | ForEach-Object { $name, $value = $_.split('=', 2); Set-Item -
 ## Exemplos de Uso
 
 ### Conexão PostgreSQL com Variáveis
+
 ```json
 {
   "name": "prod_postgres",
@@ -138,6 +151,7 @@ Get-Content .env | ForEach-Object { $name, $value = $_.split('=', 2); Set-Item -
 ```
 
 ### Caminho do DuckDB
+
 ```json
 {
   "defaultDuckDbPath": "${env:DEFAULT_DUCKDB_PATH}"
@@ -145,6 +159,7 @@ Get-Content .env | ForEach-Object { $name, $value = $_.split('=', 2); Set-Item -
 ```
 
 ### Variáveis em Jobs
+
 ```json
 {
   "variables": {
@@ -167,9 +182,11 @@ Get-Content .env | ForEach-Object { $name, $value = $_.split('=', 2); Set-Item -
 ## Troubleshooting
 
 ### Variável não encontrada
+
 Se uma variável não for encontrada, o Data-Runner manterá o padrão original `${env:VARIABLE_NAME}` e exibirá um warning no log.
 
 ### Verificar variáveis carregadas
+
 ```bash
 # Linux/Mac
 env | grep POSTGRES
@@ -179,6 +196,7 @@ Get-ChildItem Env: | Where-Object {$_.Name -like "*POSTGRES*"}
 ```
 
 ### Testar substituição
+
 ```bash
 # Teste com echo
 echo "Host: ${env:POSTGRES_HOST}"
