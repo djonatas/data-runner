@@ -27,6 +27,7 @@ data-runner list-groups
 **Descrição**: Exibe todos os jobs configurados no `jobs.json`, incluindo jobs de carga (importação), batimento (validação) e export-csv.
 
 **Exemplo de saída**:
+
 ```
 📋 Jobs Disponíveis:
 ================================================================================
@@ -60,6 +61,7 @@ data-runner run --id importar_usuarios --save-as usuarios_custom
 ```
 
 **Parâmetros**:
+
 - `--id`: ID do job a ser executado (obrigatório)
 - `--duckdb`: Caminho personalizado para o arquivo DuckDB
 - `--dry-run`: Simula a execução sem executar realmente
@@ -67,6 +69,7 @@ data-runner run --id importar_usuarios --save-as usuarios_custom
 - `--save-as`: Nome personalizado para a tabela de destino
 
 **Exemplo de saída**:
+
 ```
 🎯 Execução Concluída:
 Run ID: 12345
@@ -92,6 +95,7 @@ data-runner run-batch --ids job1,job2 --dry-run
 ```
 
 **Parâmetros**:
+
 - `--ids`: Lista de IDs separados por vírgula (obrigatório)
 - `--duckdb`: Caminho personalizado para o DuckDB
 - `--dry-run`: Simula a execução
@@ -99,6 +103,7 @@ data-runner run-batch --ids job1,job2 --dry-run
 - `--save-as`: Nome personalizado para tabela
 
 **Exemplo de saída**:
+
 ```
 📊 Resumo da Execução em Lote:
 ================================================================================
@@ -130,12 +135,14 @@ data-runner run-group --type carga --dry-run
 ```
 
 **Parâmetros**:
+
 - `--type`: Tipo de job (carga, batimento, export-csv)
 - `--duckdb`: Caminho personalizado para o DuckDB
 - `--dry-run`: Simula a execução
 - `--limit`: Limita linhas processadas
 
 **Exemplo de saída**:
+
 ```
 🎯 Executando Jobs do Tipo: carga
 ============================================================
@@ -171,12 +178,14 @@ data-runner run-group-config --group cargas_diarias --dry-run
 ```
 
 **Parâmetros**:
+
 - `--group`: Nome do grupo configurado no jobs.json (obrigatório)
 - `--duckdb`: Caminho personalizado para o DuckDB
 - `--dry-run`: Simula a execução
 - `--limit`: Limita linhas processadas
 
 **Exemplo de saída**:
+
 ```
 🎯 Executando Grupo de Jobs: cargas_diarias
 ============================================================
@@ -215,6 +224,7 @@ data-runner run --id exportar_relatorio --dry-run
 **Parâmetros**: Mesmos parâmetros do comando `run` para jobs de importação.
 
 **Exemplo de saída**:
+
 ```
 🎯 Execução Concluída:
 Run ID: 12346
@@ -240,6 +250,7 @@ data-runner run-batch --ids export_rel1,export_rel2 --limit 1000
 **Parâmetros**: Mesmos parâmetros do comando `run-batch`.
 
 **Exemplo de saída**:
+
 ```
 📊 Resumo da Execução em Lote:
 ================================================================================
@@ -267,6 +278,7 @@ data-runner run-group --type export-csv --limit 2000
 **Parâmetros**: Mesmos parâmetros do comando `run-group`.
 
 **Exemplo de saída**:
+
 ```
 🎯 Executando Jobs do Tipo: export-csv
 ============================================================
@@ -299,6 +311,7 @@ data-runner run-group-config --group relatorios_semanais --limit 5000
 **Parâmetros**: Mesmos parâmetros do comando `run-group-config`.
 
 **Exemplo de saída**:
+
 ```
 🎯 Executando Grupo de Jobs: relatorios_semanais
 ============================================================
@@ -338,10 +351,12 @@ data-runner history --query-id importar_usuarios --limit 10
 ```
 
 **Parâmetros**:
+
 - `--query-id`: Filtrar por ID específico de job
 - `--limit`: Número máximo de registros (padrão: 50)
 
 **Exemplo de saída**:
+
 ```
 📈 Histórico de Execuções:
 ========================================================================================================================
@@ -367,9 +382,11 @@ data-runner inspect --table audit_job_runs
 ```
 
 **Parâmetros**:
+
 - `--table`: Nome da tabela para inspecionar (opcional)
 
 **Exemplo de saída (listar todas)**:
+
 ```
 📋 Tabelas no DuckDB:
 ============================================================
@@ -380,6 +397,7 @@ audit_job_runs: 45 linhas
 ```
 
 **Exemplo de saída (tabela específica)**:
+
 ```
 🔍 Inspeção da Tabela: stg_usuarios
 ============================================================
@@ -408,10 +426,12 @@ data-runner drop-table --table tabela_antiga --confirm
 ```
 
 **Parâmetros**:
+
 - `--table`: Nome da tabela a ser removida (obrigatório)
 - `--confirm`: Confirma remoção sem pedir confirmação interativa
 
 **Exemplo de saída**:
+
 ```
 🗑️  Remoção de Tabela
 ==================================================
@@ -423,6 +443,7 @@ Linhas: 1500
 ```
 
 **Tabelas Protegidas**: As seguintes tabelas não podem ser removidas:
+
 - `audit_job_runs`
 - `audit_jobs_runs`
 - `audit_job_run`
@@ -440,6 +461,7 @@ data-runner list-groups
 ```
 
 **Exemplo de saída**:
+
 ```
 📋 Grupos de Jobs Disponíveis:
 ================================================================================
@@ -472,6 +494,7 @@ data-runner --version
 ```
 
 **Exemplo de saída (ajuda geral)**:
+
 ```
 Usage: data-runner [OPTIONS] COMMAND [ARGS]...
 
@@ -555,25 +578,30 @@ data-runner history --limit 10
 ## ⚠️ Observações Importantes
 
 ### 🔒 Tabelas Protegidas
+
 - As tabelas de auditoria (`audit_job_runs` e variações) não podem ser removidas
 - Tentativa de remoção resultará em erro com mensagem explicativa
 
 ### 📁 Arquivos CSV
+
 - Jobs do tipo `export-csv` geram arquivos na raiz do projeto
 - Nome do arquivo é configurado no parâmetro `csv_file` do job
 - Arquivos são sobrescritos a cada execução
 
 ### 🔄 Modo Dry-Run
+
 - Disponível em todos os comandos de execução
 - Simula a execução sem modificar dados
 - Útil para testar configurações e validar SQL
 
 ### 📊 Limites
+
 - O parâmetro `--limit` controla quantas linhas são processadas
 - Útil para testes e execuções parciais
 - Não afeta a estrutura da tabela, apenas a quantidade de dados
 
 ### 🎯 Dependências
+
 - Jobs com dependências são executados na ordem correta automaticamente
 - Dependências circulares são detectadas e reportadas como erro
 - Jobs independentes podem ser executados em paralelo
@@ -583,6 +611,7 @@ data-runner history --limit 10
 ## 📞 Suporte
 
 Para dúvidas sobre comandos específicos:
+
 - Use `data-runner <comando> --help` para ajuda detalhada
 - Consulte o `README.md` para exemplos de configuração
 - Verifique o histórico com `data-runner history` para debug de execuções
