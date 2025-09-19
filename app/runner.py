@@ -426,6 +426,10 @@ class JobRunner:
                 finally:
                     main_db_connection.close()
             
+            # Definir rowcount para todos os tipos de job (exceto validação que já foi definido)
+            if job.type != JobType.VALIDATION:
+                job_run.rowcount = rowcount
+            
             # Definir status de sucesso
             job_run.status = JobStatus.SUCCESS
             
