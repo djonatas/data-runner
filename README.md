@@ -327,7 +327,6 @@ POSTGRES_PASSWORD=minha_senha
 {
   "queryId": "validar_dados_usuarios",
   "type": "validation",
-  "connection": "sqlite_dev",
   "main_query": "importar_usuarios",
   "validation_file": "user_data_validation.py",
   "dependencies": ["importar_usuarios"]
@@ -370,15 +369,15 @@ import pandas as pd
 def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationResult:
     """
     Função principal de validação
-    
+
     Args:
         data: DataFrame com os dados a serem validados
         context: Contexto adicional (main_query_id, validation_query_id, etc.)
-        
+
     Returns:
         ValidationResult com o resultado da validação
     """
-    
+
     # Sua lógica de validação aqui
     if data.empty:
         return ValidationResult(
@@ -386,17 +385,17 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
             message="Nenhum dado encontrado",
             details={"row_count": 0}
         )
-    
+
     # Exemplo: verificar se há dados nulos
     null_count = data.isnull().sum().sum()
-    
+
     if null_count > 0:
         return ValidationResult(
             success=False,
             message=f"Encontrados {null_count} valores nulos",
             details={"null_count": int(null_count)}
         )
-    
+
     return ValidationResult(
         success=True,
         message="Validação passou com sucesso",
@@ -406,21 +405,21 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
 
 ### Parâmetros de Validação
 
-| Parâmetro | Tipo | Obrigatório | Descrição |
-|-----------|------|-------------|-----------|
-| `validation_file` | string | Sim | Caminho do arquivo Python de validação |
-| `main_query` | string | Sim | ID do job que fornece os dados para validação |
-| `connection` | string | Sim | Conexão para contexto (geralmente sqlite_dev) |
-| `dependencies` | array | Não | Lista de jobs que devem executar antes |
+| Parâmetro         | Tipo   | Obrigatório | Descrição                                     |
+| ----------------- | ------ | ----------- | --------------------------------------------- |
+| `validation_file` | string | Sim         | Caminho do arquivo Python de validação        |
+| `main_query`      | string | Sim         | ID do job que fornece os dados para validação |
+| `connection`      | string | Não         | Conexão para contexto (opcional)              |
+| `dependencies`    | array  | Não         | Lista de jobs que devem executar antes        |
 
 ### Exemplos Práticos
 
 #### Validação de Dados de Usuários
+
 ```json
 {
   "queryId": "validate_user_data",
   "type": "validation",
-  "connection": "sqlite_dev",
   "main_query": "load_users",
   "validation_file": "user_data_validation.py",
   "dependencies": ["load_users"]
@@ -428,11 +427,11 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
 ```
 
 #### Validação de Dados de Vendas
+
 ```json
 {
   "queryId": "validate_sales_data",
   "type": "validation",
-  "connection": "sqlite_dev",
   "main_query": "load_sales_csv",
   "validation_file": "example_validation.py",
   "dependencies": ["load_sales_csv"]
@@ -455,6 +454,7 @@ data-runner run-group-config --group validations
 ### Resultados de Validação
 
 Os resultados são armazenados na tabela de auditoria e incluem:
+
 - **Status**: Sucesso/Falha da validação
 - **Mensagem**: Descrição do resultado
 - **Detalhes**: Informações detalhadas em JSON

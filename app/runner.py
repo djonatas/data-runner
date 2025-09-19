@@ -257,10 +257,12 @@ class JobRunner:
         if not job:
             raise ValueError(f"Job não encontrado: {query_id}")
         
-        # Buscar conexão
-        connection_config = self.get_connection(job.connection)
-        if not connection_config:
-            raise ValueError(f"Conexão não encontrada: {job.connection}")
+        # Buscar conexão (não obrigatória para jobs de validação)
+        connection_config = None
+        if job.connection:
+            connection_config = self.get_connection(job.connection)
+            if not connection_config:
+                raise ValueError(f"Conexão não encontrada: {job.connection}")
         
         # Criar JobRun
         job_run = JobRun.create_new(query_id, job.type)
@@ -277,32 +279,36 @@ class JobRunner:
         
         try:
             self.logger.info(f"Iniciando execução do job {query_id}")
-            self.logger.info(f"Conexão: {job.connection}")
+            self.logger.info(f"Conexão: {job.connection or 'N/A'}")
             self.logger.info(f"Tipo: {job.type.value}")
             self.logger.info(f"Tabela alvo: {target_table}")
             
-            # Processar SQL (apenas para conexões que não são CSV)
-            sql = None
-            if job.sql and connection_config.type.value != "csv":
-                sql = expand_env_vars(job.sql)
-                
-                # Processar variáveis personalizadas
-                if self.variable_processor:
-                    try:
-                        sql = self.variable_processor.process_sql(sql)
-                        self.logger.info("Variáveis processadas com sucesso")
-                    except Exception as e:
-                        self.logger.error(f"Erro ao processar variáveis: {e}")
-                        raise
-                
-                if options.limit:
-                    sql = apply_limit(sql, options.limit)
-                
-                self.logger.info(f"SQL: {truncate_sql_for_log(sql)}")
-            elif connection_config.type.value == "csv":
-                self.logger.info("Processando arquivo CSV (sem SQL)")
+            # Para jobs de validação, não processar SQL próprio
+            if job.type == JobType.VALIDATION:
+                self.logger.info("Job de validação - executando validação diretamente")
             else:
-                raise ValueError("Job deve ter SQL definido para conexões de banco de dados")
+                # Processar SQL (apenas para conexões que não são CSV)
+                sql = None
+                if job.sql and connection_config and connection_config.type.value != "csv":
+                    sql = expand_env_vars(job.sql)
+                    
+                    # Processar variáveis personalizadas
+                    if self.variable_processor:
+                        try:
+                            sql = self.variable_processor.process_sql(sql)
+                            self.logger.info("Variáveis processadas com sucesso")
+                        except Exception as e:
+                            self.logger.error(f"Erro ao processar variáveis: {e}")
+                            raise
+                    
+                    if options.limit:
+                        sql = apply_limit(sql, options.limit)
+                    
+                    self.logger.info(f"SQL: {truncate_sql_for_log(sql)}")
+                elif connection_config and connection_config.type.value == "csv":
+                    self.logger.info("Processando arquivo CSV (sem SQL)")
+                else:
+                    raise ValueError("Job deve ter SQL definido para conexões de banco de dados")
             
             if options.dry_run:
                 self.logger.info("DRY RUN - Nenhuma execução será realizada")
@@ -311,104 +317,108 @@ class JobRunner:
                 job_run.finished_at = datetime.now().isoformat()
                 return job_run
             
-            # Executar query
-            db_connection = ConnectionFactory.create_connection(connection_config)
+            # Executar query (apenas para jobs que não são de validação)
+            if job.type != JobType.VALIDATION:
+                db_connection = ConnectionFactory.create_connection(connection_config)
+                
+                try:
+                    df = db_connection.execute_query(sql)
+                    rowcount = len(df)
+                    
+                    self.logger.info(f"Query executada com sucesso. Linhas retornadas: {rowcount}")
+                finally:
+                    db_connection.close()
+            else:
+                # Para jobs de validação, df e rowcount serão definidos na seção de validação
+                df = None
+                rowcount = 0
             
-            try:
-                df = db_connection.execute_query(sql)
-                rowcount = len(df)
+            # Processar resultado baseado no tipo
+            if job.type == JobType.CARGA:
+                # Para carga, substituir tabela
+                self.repository.save_dataframe(df, target_table, replace=True)
+                self.logger.info(f"Dados salvos na tabela {target_table}")
                 
-                self.logger.info(f"Query executada com sucesso. Linhas retornadas: {rowcount}")
+            elif job.type == JobType.BATIMENTO:
+                # Para batimento, salvar em val_<query_id>
+                val_table = f"val_{query_id}"
+                val_table = sanitize_table_name(val_table)
+                self.repository.save_dataframe(df, val_table, replace=True)
+                self.logger.info(f"Resultado de batimento salvo na tabela {val_table}")
                 
-                # Salvar resultado baseado no tipo
-                if job.type == JobType.CARGA:
-                    # Para carga, substituir tabela
-                    self.repository.save_dataframe(df, target_table, replace=True)
-                    self.logger.info(f"Dados salvos na tabela {target_table}")
+            elif job.type == JobType.EXPORT_CSV:
+                # Para export-csv, exportar para arquivo CSV
+                if not job.csv_file:
+                    raise ValueError("Job export-csv deve ter 'csv_file' definido")
                 
-                elif job.type == JobType.BATIMENTO:
-                    # Para batimento, salvar em val_<query_id>
-                    val_table = f"val_{query_id}"
-                    val_table = sanitize_table_name(val_table)
-                    self.repository.save_dataframe(df, val_table, replace=True)
-                    self.logger.info(f"Resultado de batimento salvo na tabela {val_table}")
+                # Configurar parâmetros CSV com valores padrão
+                separator = job.csv_separator or ","
+                encoding = job.csv_encoding or "utf-8"
+                include_header = job.csv_include_header if job.csv_include_header is not None else True
                 
-                elif job.type == JobType.EXPORT_CSV:
-                    # Para export-csv, exportar para arquivo CSV
-                    if not job.csv_file:
-                        raise ValueError("Job export-csv deve ter 'csv_file' definido")
+                csv_path = self.repository.export_dataframe_to_csv(
+                    df, job.csv_file, separator, encoding, include_header
+                )
+                
+                job_run.csv_file = csv_path
+                self.logger.info(f"Dados exportados para CSV: {csv_path}")
+                
+            elif job.type == JobType.VALIDATION:
+                # Para validation, executar validação personalizada
+                if not job.validation_file:
+                    raise ValueError("Job validation deve ter 'validation_file' definido")
+                
+                if not job.main_query:
+                    raise ValueError("Job validation deve ter 'main_query' definido")
+                
+                # Buscar dados da query principal
+                main_job = self.get_job(job.main_query)
+                if not main_job:
+                    raise ValueError(f"Job principal não encontrado: {job.main_query}")
+                
+                main_connection_config = self.get_connection(main_job.connection)
+                if not main_connection_config:
+                    raise ValueError(f"Conexão do job principal não encontrada: {main_job.connection}")
+                
+                # Executar query principal
+                main_db_connection = ConnectionFactory.create_connection(main_connection_config)
+                try:
+                    # Processar SQL da query principal
+                    main_sql = expand_env_vars(main_job.sql)
+                    if self.variable_processor:
+                        main_sql = self.variable_processor.process_sql(main_sql)
                     
-                    # Configurar parâmetros CSV com valores padrão
-                    separator = job.csv_separator or ","
-                    encoding = job.csv_encoding or "utf-8"
-                    include_header = job.csv_include_header if job.csv_include_header is not None else True
+                    main_df = main_db_connection.execute_query(main_sql)
+                    self.logger.info(f"Dados da query principal carregados: {len(main_df)} linhas")
                     
-                    csv_path = self.repository.export_dataframe_to_csv(
-                        df, job.csv_file, separator, encoding, include_header
+                    # Executar validação
+                    context = {
+                        "main_query_id": job.main_query,
+                        "validation_query_id": query_id,
+                        "main_connection": main_job.connection,
+                        "validation_connection": job.connection
+                    }
+                    
+                    validation_result = self.validation_engine.execute_validation(
+                        job.validation_file, main_df, context
                     )
                     
-                    job_run.csv_file = csv_path
-                    self.logger.info(f"Dados exportados para CSV: {csv_path}")
-                
-                elif job.type == JobType.VALIDATION:
-                    # Para validation, executar validação personalizada
-                    if not job.validation_file:
-                        raise ValueError("Job validation deve ter 'validation_file' definido")
+                    # Armazenar resultado da validação
+                    job_run.validation_file = job.validation_file
+                    job_run.validation_result = validation_result.to_json()
+                    job_run.rowcount = len(main_df)
                     
-                    if not job.main_query:
-                        raise ValueError("Job validation deve ter 'main_query' definido")
+                    if validation_result.success:
+                        self.logger.info(f"Validação executada com sucesso: {validation_result.message}")
+                    else:
+                        self.logger.warning(f"Validação falhou: {validation_result.message}")
+                        # Não falha o job, apenas registra o resultado
                     
-                    # Buscar dados da query principal
-                    main_job = self.get_job(job.main_query)
-                    if not main_job:
-                        raise ValueError(f"Job principal não encontrado: {job.main_query}")
-                    
-                    main_connection_config = self.get_connection(main_job.connection)
-                    if not main_connection_config:
-                        raise ValueError(f"Conexão do job principal não encontrada: {main_job.connection}")
-                    
-                    # Executar query principal
-                    main_db_connection = ConnectionFactory.create_connection(main_connection_config)
-                    try:
-                        # Processar SQL da query principal
-                        main_sql = expand_env_vars(main_job.sql)
-                        if self.variable_processor:
-                            main_sql = self.variable_processor.process_sql(main_sql)
-                        
-                        main_df = main_db_connection.execute_query(main_sql)
-                        self.logger.info(f"Dados da query principal carregados: {len(main_df)} linhas")
-                        
-                        # Executar validação
-                        context = {
-                            "main_query_id": job.main_query,
-                            "validation_query_id": query_id,
-                            "main_connection": main_job.connection,
-                            "validation_connection": job.connection
-                        }
-                        
-                        validation_result = self.validation_engine.execute_validation(
-                            job.validation_file, main_df, context
-                        )
-                        
-                        # Armazenar resultado da validação
-                        job_run.validation_file = job.validation_file
-                        job_run.validation_result = validation_result.to_json()
-                        job_run.rowcount = len(main_df)
-                        
-                        if validation_result.success:
-                            self.logger.info(f"Validação executada com sucesso: {validation_result.message}")
-                        else:
-                            self.logger.warning(f"Validação falhou: {validation_result.message}")
-                            # Não falha o job, apenas registra o resultado
-                        
-                    finally:
-                        main_db_connection.close()
-                
-                job_run.status = JobStatus.SUCCESS
-                job_run.rowcount = rowcount
-                
-            finally:
-                db_connection.close()
+                finally:
+                    main_db_connection.close()
+            
+            # Definir status de sucesso
+            job_run.status = JobStatus.SUCCESS
             
         except Exception as e:
             error_msg = str(e)

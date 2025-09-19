@@ -89,7 +89,6 @@
     {
       "queryId": "validate_user_data",
       "type": "validation",
-      "connection": "sqlite_dev",
       "main_query": "load_users",
       "validation_file": "user_data_validation.py",
       "dependencies": ["load_users"]
@@ -97,7 +96,6 @@
     {
       "queryId": "validate_sales_data",
       "type": "validation",
-      "connection": "sqlite_dev",
       "main_query": "load_sales_csv",
       "validation_file": "example_validation.py",
       "dependencies": ["load_sales_csv"]
