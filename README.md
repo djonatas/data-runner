@@ -492,14 +492,30 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
 | `main_query`      | string | Sim         | ID do job que fornece os dados para validação |
 | `connection`      | string | Não         | Conexão para contexto (opcional)              |
 | `dependencies`    | array  | Não         | Lista de jobs que devem executar antes        |
+| `output_table`    | string | Não         | Nome da tabela para salvar resultados         |
+| `pkey_field`      | string | Não         | Campo chave primária para indexação           |
 
 ### Exemplos Práticos
 
-#### Validação por Registro de Usuários
+#### Validação por Registro de Usuários (Com Output)
 
 ```json
 {
   "queryId": "validate_users_per_record",
+  "type": "validation",
+  "main_query": "load_users",
+  "validation_file": "user_per_record_validation.py",
+  "output_table": "user_validation_results",
+  "pkey_field": "id",
+  "dependencies": ["load_users"]
+}
+```
+
+#### Validação por Registro (Sem Output)
+
+```json
+{
+  "queryId": "validate_users_per_record_simple",
   "type": "validation",
   "main_query": "load_users",
   "validation_file": "user_per_record_validation.py",
@@ -543,6 +559,30 @@ data-runner run-group --type validation
 # Executar grupo de validações
 data-runner run-group-config --group validations
 ```
+
+### Tabela de Output de Validação
+
+Quando configurado com `output_table` e `pkey_field`, os resultados são salvos em uma tabela estruturada:
+
+#### Estrutura da Tabela
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `execution_count` | INTEGER | Número sequencial da execução (PK) |
+| `pkey` | VARCHAR | Chave primária do registro validado (PK) |
+| `result` | VARCHAR | Resultado: "success" ou "error" |
+| `message` | TEXT | Mensagem da validação |
+| `details` | TEXT | Detalhes em JSON |
+| `input_data` | TEXT | Dados do registro em JSON |
+| `executed_at` | VARCHAR | Timestamp da execução |
+
+#### Benefícios da Tabela de Output
+
+- **📊 Histórico completo**: Todas as validações por registro
+- **🔍 Rastreabilidade**: Identificar exatamente qual registro falhou
+- **📈 Análise temporal**: Evolução da qualidade dos dados
+- **🎯 Correção direcionada**: Saber exatamente o que corrigir
+- **📋 Relatórios**: Consultas SQL para análise de qualidade
 
 ### Resultados de Validação
 

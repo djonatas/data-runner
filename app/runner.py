@@ -399,9 +399,18 @@ class JobRunner:
                         "validation_connection": job.connection
                     }
                     
-                    validation_result = self.validation_engine.execute_validation_per_record(
-                        job.validation_file, main_df, context
-                    )
+                    # Executar validação com ou sem output
+                    if job.output_table and job.pkey_field:
+                        # Validação com salvamento na tabela de output
+                        validation_result = self.validation_engine.execute_validation_per_record_with_output(
+                            job.validation_file, main_df, context, 
+                            self.repository, job.output_table, job.pkey_field
+                        )
+                    else:
+                        # Validação tradicional sem output
+                        validation_result = self.validation_engine.execute_validation_per_record(
+                            job.validation_file, main_df, context
+                        )
                     
                     # Armazenar resultado da validação
                     job_run.validation_file = job.validation_file

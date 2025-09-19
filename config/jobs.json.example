@@ -105,6 +105,8 @@
       "type": "validation",
       "main_query": "load_users",
       "validation_file": "user_per_record_validation.py",
+      "output_table": "user_validation_results",
+      "pkey_field": "id",
       "dependencies": ["load_users"]
     },
     {
@@ -112,7 +114,18 @@
       "type": "validation",
       "main_query": "load_products_csv",
       "validation_file": "per_record_validation.py",
+      "output_table": "product_validation_results",
+      "pkey_field": "product_id",
       "dependencies": ["load_products_csv"]
+    },
+    {
+      "queryId": "validate_sales_per_record",
+      "type": "validation",
+      "main_query": "load_sales_csv",
+      "validation_file": "per_record_validation.py",
+      "output_table": "sales_validation_results",
+      "pkey_field": "sale_id",
+      "dependencies": ["load_sales_csv"]
     },
     {
       "queryId": "variables_demo",
@@ -279,6 +292,7 @@
         "validate_sales_data",
         "validate_users_per_record",
         "validate_records_individually",
+        "validate_sales_per_record",
         "final_validation"
       ]
     },

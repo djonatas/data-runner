@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Union
 from enum import Enum
 import uuid
+import json
 
 
 class JobType(Enum):
@@ -92,6 +93,9 @@ class Job:
     # Parâmetros específicos para validation
     validation_file: Optional[str] = None  # Caminho do arquivo Python de validação
     main_query: Optional[str] = None  # queryId da query principal para validação
+    # Parâmetros para tabela de output de validação
+    output_table: Optional[str] = None  # Nome da tabela de output para resultados
+    pkey_field: Optional[str] = None  # Campo chave primária para indexação
 
 
 @dataclass
@@ -143,6 +147,30 @@ class JobsConfig:
     jobs: List[Job]
     variables: Optional[Dict[str, Variable]] = None
     job_groups: Optional[Dict[str, JobGroup]] = None
+
+
+@dataclass
+class ValidationRecord:
+    """Registro de validação individual para tabela de output"""
+    execution_count: int
+    pkey: str
+    result: str  # "success" ou "error"
+    message: str
+    details: str  # JSON string com detalhes
+    input_data: str  # JSON string com dados do registro
+    executed_at: str  # ISO timestamp
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Converte para dicionário"""
+        return {
+            "execution_count": self.execution_count,
+            "pkey": self.pkey,
+            "result": self.result,
+            "message": self.message,
+            "details": self.details,
+            "input_data": self.input_data,
+            "executed_at": self.executed_at
+        }
 
 
 @dataclass
