@@ -566,15 +566,15 @@ Quando configurado com `output_table` e `pkey_field`, os resultados são salvos 
 
 #### Estrutura da Tabela
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `execution_count` | INTEGER | Número sequencial da execução (PK) |
-| `pkey` | VARCHAR | Chave primária do registro validado (PK) |
-| `result` | VARCHAR | Resultado: "success" ou "error" |
-| `message` | TEXT | Mensagem da validação |
-| `details` | TEXT | Detalhes em JSON |
-| `input_data` | TEXT | Dados do registro em JSON |
-| `executed_at` | VARCHAR | Timestamp da execução |
+| Campo             | Tipo    | Descrição                                |
+| ----------------- | ------- | ---------------------------------------- |
+| `execution_count` | INTEGER | Número sequencial da execução (PK)       |
+| `pkey`            | VARCHAR | Chave primária do registro validado (PK) |
+| `result`          | VARCHAR | Resultado: "success" ou "error"          |
+| `message`         | TEXT    | Mensagem da validação                    |
+| `details`         | TEXT    | Detalhes em JSON                         |
+| `input_data`      | TEXT    | Dados do registro em JSON                |
+| `executed_at`     | VARCHAR | Timestamp da execução                    |
 
 #### Benefícios da Tabela de Output
 
