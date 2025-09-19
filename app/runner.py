@@ -399,7 +399,7 @@ class JobRunner:
                         "validation_connection": job.connection
                     }
                     
-                    validation_result = self.validation_engine.execute_validation(
+                    validation_result = self.validation_engine.execute_validation_per_record(
                         job.validation_file, main_df, context
                     )
                     

@@ -94,6 +94,130 @@ class ValidationEngine:
             logger.error(f"Erro ao carregar módulo de validação {validation_path}: {e}")
             raise ImportError(f"Erro ao carregar módulo de validação: {e}")
     
+    def execute_validation_per_record(self, validation_file: str, data: pd.DataFrame, 
+                                     context: Dict[str, Any] = None) -> ValidationResult:
+        """
+        Executa uma validação por registro (uma vez para cada linha)
+        
+        Args:
+            validation_file: Caminho do arquivo Python de validação
+            data: DataFrame com os dados a serem validados
+            context: Contexto adicional para a validação
+            
+        Returns:
+            ValidationResult com o resultado da validação
+        """
+        try:
+            # Carregar módulo de validação
+            module = self.load_validation_module(validation_file)
+            
+            # Verificar se tem função de validação
+            if not hasattr(module, 'validate_record'):
+                # Se não tem validate_record, usar validate (validação tradicional)
+                return self.execute_validation(validation_file, data, context)
+            
+            validate_record_func = getattr(module, 'validate_record')
+            if not callable(validate_record_func):
+                raise ValueError("'validate_record' deve ser uma função")
+            
+            # Executar validação para cada registro
+            logger.info(f"Executando validação por registro: {validation_file}")
+            results = []
+            failed_records = []
+            error_records = []
+            
+            for index, record in data.iterrows():
+                try:
+                    # Converter Series para dict e adicionar índice
+                    record_dict = record.to_dict()
+                    record_dict['_record_index'] = index
+                    
+                    # Executar validação para este registro
+                    result = validate_record_func(record_dict, context or {})
+                    
+                    # Converter resultado para ValidationResult se necessário
+                    if isinstance(result, ValidationResult):
+                        validation_result = result
+                    elif isinstance(result, dict):
+                        validation_result = ValidationResult(
+                            success=result.get('success', False),
+                            message=result.get('message', ''),
+                            details=result.get('details', {})
+                        )
+                    elif isinstance(result, bool):
+                        validation_result = ValidationResult(
+                            success=result,
+                            message="Validação executada com sucesso" if result else "Validação falhou"
+                        )
+                    else:
+                        validation_result = ValidationResult(
+                            success=True,
+                            message=str(result)
+                        )
+                    
+                    results.append({
+                        'record_index': index,
+                        'record_data': record_dict,
+                        'validation_result': validation_result
+                    })
+                    
+                    if not validation_result.success:
+                        failed_records.append({
+                            'index': index,
+                            'record': record_dict,
+                            'message': validation_result.message,
+                            'details': validation_result.details
+                        })
+                
+                except Exception as e:
+                    error_records.append({
+                        'index': index,
+                        'record': record_dict if 'record_dict' in locals() else record.to_dict(),
+                        'error': str(e)
+                    })
+                    logger.error(f"Erro na validação do registro {index}: {e}")
+            
+            # Determinar resultado geral
+            total_records = len(data)
+            successful_records = total_records - len(failed_records) - len(error_records)
+            
+            if error_records:
+                overall_success = False
+                overall_message = f"Erro na validação: {len(error_records)} registro(s) com erro"
+            elif failed_records:
+                overall_success = False
+                overall_message = f"Validação falhou: {len(failed_records)} de {total_records} registro(s) falharam"
+            else:
+                overall_success = True
+                overall_message = f"Validação passou: {successful_records} registro(s) validados com sucesso"
+            
+            # Detalhes da validação
+            details = {
+                "validation_type": "per_record",
+                "total_records": total_records,
+                "successful_records": successful_records,
+                "failed_records": len(failed_records),
+                "error_records": len(error_records),
+                "success_rate": round(successful_records / total_records * 100, 2) if total_records > 0 else 0,
+                "failed_records_details": failed_records[:10],  # Limitar a 10 para não sobrecarregar
+                "error_records_details": error_records[:10],   # Limitar a 10 para não sobrecarregar
+                "context": context or {}
+            }
+            
+            return ValidationResult(
+                success=overall_success,
+                message=overall_message,
+                details=details
+            )
+                
+        except Exception as e:
+            logger.error(f"Erro ao executar validação por registro {validation_file}: {e}")
+            return ValidationResult(
+                success=False,
+                message=f"Erro na validação por registro: {str(e)}",
+                details={"error_type": type(e).__name__, "validation_type": "per_record"}
+            )
+    
     def execute_validation(self, validation_file: str, data: pd.DataFrame, 
                           context: Dict[str, Any] = None) -> ValidationResult:
         """

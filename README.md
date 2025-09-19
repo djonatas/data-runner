@@ -359,25 +359,104 @@ O Data-Runner inclui um motor de validação que permite executar validações p
 3. **Arquivo Python**: Cria um arquivo Python com a lógica de validação
 4. **Execução**: O motor carrega dinamicamente o arquivo e executa a validação
 
+### Tipos de Validação
+
+#### 🔍 Validação por Registro (Recomendado)
+- **Função**: `validate_record(record, context)`
+- **Execução**: Uma vez para cada linha/registro dos dados
+- **Uso**: Validações específicas por registro, verificações individuais
+- **Vantagem**: Detalhamento por registro, identificação precisa de problemas
+- **Exemplo**: Validar email de cada usuário individualmente
+
+#### 📊 Validação por Dataset (Tradicional)
+- **Função**: `validate(data, context)`
+- **Execução**: Uma vez para todo o dataset
+- **Uso**: Validações gerais, estatísticas do dataset
+- **Vantagem**: Visão geral, validações de integridade
+- **Exemplo**: Verificar se há duplicatas no dataset completo
+
 ### Estrutura do Arquivo de Validação
+
+#### Validação por Registro (Recomendado)
 
 ```python
 # validations/minha_validacao.py
 from app.validation_engine import ValidationResult
 import pandas as pd
 
+def validate_record(record: Dict[str, Any], context: Dict[str, Any] = None) -> ValidationResult:
+    """
+    Função executada uma vez para cada registro
+    
+    Args:
+        record: Dicionário com os dados do registro (inclui _record_index)
+        context: Contexto adicional (main_query_id, validation_query_id, etc.)
+        
+    Returns:
+        ValidationResult com o resultado da validação para este registro
+    """
+    
+    record_index = record.get('_record_index', 'N/A')
+    
+    # Sua lógica de validação para este registro específico
+    if 'id' not in record:
+        return ValidationResult(
+            success=False,
+            message=f"Registro {record_index}: Campo 'id' obrigatório",
+            details={"record_index": record_index, "missing_field": "id"}
+        )
+    
+    if not record.get('name'):
+        return ValidationResult(
+            success=False,
+            message=f"Registro {record_index}: Campo 'name' obrigatório",
+            details={"record_index": record_index, "missing_field": "name"}
+        )
+    
+    return ValidationResult(
+        success=True,
+        message=f"Registro {record_index} válido",
+        details={"record_index": record_index}
+    )
+
+# Função de validação tradicional (opcional, para compatibilidade)
 def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationResult:
     """
-    Função principal de validação
+    Validação tradicional (executada uma vez para todo o dataset)
+    """
+    if data.empty:
+        return ValidationResult(
+            success=False,
+            message="Nenhum dado encontrado",
+            details={"row_count": 0}
+        )
+    
+    return ValidationResult(
+        success=True,
+        message="Validação passou com sucesso",
+        details={"row_count": len(data)}
+    )
+```
 
+#### Validação Tradicional (Dataset Completo)
+
+```python
+# validations/validacao_tradicional.py
+from app.validation_engine import ValidationResult
+import pandas as pd
+
+def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationResult:
+    """
+    Função de validação tradicional (executada uma vez para todo o dataset)
+    
     Args:
         data: DataFrame com os dados a serem validados
         context: Contexto adicional (main_query_id, validation_query_id, etc.)
-
+        
     Returns:
         ValidationResult com o resultado da validação
     """
-
+    
     # Sua lógica de validação aqui
     if data.empty:
         return ValidationResult(
@@ -385,17 +464,17 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
             message="Nenhum dado encontrado",
             details={"row_count": 0}
         )
-
+    
     # Exemplo: verificar se há dados nulos
     null_count = data.isnull().sum().sum()
-
+    
     if null_count > 0:
         return ValidationResult(
             success=False,
             message=f"Encontrados {null_count} valores nulos",
             details={"null_count": int(null_count)}
         )
-
+    
     return ValidationResult(
         success=True,
         message="Validação passou com sucesso",
@@ -414,19 +493,19 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
 
 ### Exemplos Práticos
 
-#### Validação de Dados de Usuários
+#### Validação por Registro de Usuários
 
 ```json
 {
-  "queryId": "validate_user_data",
+  "queryId": "validate_users_per_record",
   "type": "validation",
   "main_query": "load_users",
-  "validation_file": "user_data_validation.py",
+  "validation_file": "user_per_record_validation.py",
   "dependencies": ["load_users"]
 }
 ```
 
-#### Validação de Dados de Vendas
+#### Validação Tradicional de Dataset
 
 ```json
 {
@@ -435,6 +514,18 @@ def validate(data: pd.DataFrame, context: Dict[str, Any] = None) -> ValidationRe
   "main_query": "load_sales_csv",
   "validation_file": "example_validation.py",
   "dependencies": ["load_sales_csv"]
+}
+```
+
+#### Validação Individual de Registros
+
+```json
+{
+  "queryId": "validate_records_individually",
+  "type": "validation",
+  "main_query": "load_products_csv",
+  "validation_file": "per_record_validation.py",
+  "dependencies": ["load_products_csv"]
 }
 ```
 
@@ -455,15 +546,33 @@ data-runner run-group-config --group validations
 
 Os resultados são armazenados na tabela de auditoria e incluem:
 
+#### Para Validação por Registro:
+- **Status**: Sucesso/Falha geral da validação
+- **Mensagem**: Resumo dos resultados (ex: "150 de 200 registros válidos")
+- **Detalhes**: Estatísticas detalhadas:
+  - `validation_type`: "per_record"
+  - `total_records`: Número total de registros
+  - `successful_records`: Registros que passaram na validação
+  - `failed_records`: Registros que falharam
+  - `success_rate`: Taxa de sucesso em percentual
+  - `failed_records_details`: Detalhes dos primeiros 10 registros que falharam
+  - `error_records_details`: Detalhes dos primeiros 10 registros com erro
+
+#### Para Validação Tradicional:
 - **Status**: Sucesso/Falha da validação
 - **Mensagem**: Descrição do resultado
-- **Detalhes**: Informações detalhadas em JSON
+- **Detalhes**: Informações gerais sobre o dataset
 - **Contexto**: Metadados sobre a execução
 
 ### Exemplos de Validações Incluídas
 
+#### Validação Tradicional (Dataset):
 - **`example_validation.py`**: Validação genérica com verificações básicas
 - **`user_data_validation.py`**: Validação específica para dados de usuários (email, telefone, CPF)
+
+#### Validação por Registro:
+- **`per_record_validation.py`**: Validação genérica por registro (ID, nome, email, status)
+- **`user_per_record_validation.py`**: Validação específica de usuários por registro (email, telefone, CPF)
 
 ## 🔄 Sistema de Dependências
 
@@ -479,7 +588,7 @@ Os resultados são armazenados na tabela de auditoria e incluem:
     },
     {
       "queryId": "processar_dados",
-      "type": "carga",
+  "type": "carga",
       "connection": "postgres_db",
       "sql": "SELECT * FROM dados_carregados WHERE status = 'ativo'",
       "targetTable": "dados_processados",
