@@ -2,6 +2,15 @@
 
 O Data-Runner suporta o uso de variáveis de ambiente em arquivos de configuração, permitindo maior flexibilidade e segurança para diferentes ambientes.
 
+## ⚡ Carregamento Automático
+
+O Data-Runner carrega automaticamente o arquivo `.env` quando iniciado, não sendo necessário configurar manualmente as variáveis de ambiente.
+
+**Log de carregamento:**
+```
+INFO - Carregando variáveis de ambiente de: /path/to/.env
+```
+
 ## Padrão de Uso
 
 Use o padrão `${env:VARIABLE_NAME}` em qualquer campo de string nos arquivos de configuração:
@@ -77,26 +86,37 @@ ENVIRONMENT=development
 
 ### 1. Criar arquivo .env
 ```bash
-# Copie o arquivo de exemplo
-cp .env.example .env
+# Crie o arquivo .env na raiz do projeto
+touch .env
 
 # Edite com suas configurações
 nano .env
 ```
 
-### 2. Carregar variáveis no ambiente
+### 2. Carregamento Automático
+O Data-Runner carrega automaticamente o arquivo `.env` quando iniciado. Não é necessário carregar manualmente as variáveis.
+
+**Locais onde o Data-Runner procura o arquivo .env:**
+1. `./.env` (diretório atual)
+2. `../.env` (diretório pai)
+3. `./data-runner/.env` (raiz do projeto)
+4. `~/.env` (home do usuário)
+
+### 3. Usar no Data-Runner
+```bash
+# As variáveis serão automaticamente carregadas e substituídas
+data-runner list-jobs
+data-runner run --id meu_job
+```
+
+### 4. Carregamento Manual (Opcional)
+Se preferir carregar manualmente:
 ```bash
 # Linux/Mac
 export $(cat .env | xargs)
 
 # Windows (PowerShell)
 Get-Content .env | ForEach-Object { $name, $value = $_.split('=', 2); Set-Item -Path "env:$name" -Value $value }
-```
-
-### 3. Usar no Data-Runner
-```bash
-# As variáveis serão automaticamente substituídas
-data-runner list-jobs
 ```
 
 ## Exemplos de Uso

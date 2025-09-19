@@ -6,6 +6,13 @@ import os
 import re
 from typing import Any, Dict
 import logging
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +20,39 @@ logger = logging.getLogger(__name__)
 class EnvironmentVariableProcessor:
     """Processa variáveis de ambiente em strings de configuração"""
     
-    def __init__(self):
+    def __init__(self, load_dotenv_file: bool = True):
         self.logger = logger
+        self._dotenv_loaded = False
+        
+        if load_dotenv_file:
+            self._load_dotenv()
+    
+    def _load_dotenv(self):
+        """Carrega arquivo .env se disponível"""
+        if not DOTENV_AVAILABLE:
+            self.logger.debug("python-dotenv não disponível, pulando carregamento de .env")
+            return
+        
+        # Procurar arquivo .env em vários locais
+        possible_paths = [
+            Path.cwd() / '.env',  # Diretório atual
+            Path.cwd().parent / '.env',  # Diretório pai
+            Path(__file__).parent.parent / '.env',  # Raiz do projeto
+            Path.home() / '.env',  # Home do usuário
+        ]
+        
+        for env_path in possible_paths:
+            if env_path.exists():
+                self.logger.info(f"Carregando variáveis de ambiente de: {env_path}")
+                load_dotenv(env_path, override=True)
+                self._dotenv_loaded = True
+                return
+        
+        self.logger.debug("Arquivo .env não encontrado em nenhum dos locais esperados")
+    
+    def is_dotenv_loaded(self) -> bool:
+        """Retorna se o arquivo .env foi carregado"""
+        return self._dotenv_loaded
     
     def process_string(self, text: str) -> str:
         """
