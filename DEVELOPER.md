@@ -63,19 +63,22 @@ O **Data-Runner** é uma ferramenta de orquestração de pipelines de dados cons
 ### 🧩 Componentes Principais
 
 #### **CLI Layer** (`app/cli.py`)
+
 - **Responsabilidade**: Interface de linha de comando
 - **Tecnologia**: Click framework
 - **Padrão**: Command Pattern
 
 #### **Runner Layer** (`app/runner.py`)
+
 - **Responsabilidade**: Orquestração e coordenação
-- **Funcionalidades**: 
+- **Funcionalidades**:
   - Carregamento de configurações
   - Execução de jobs
   - Gerenciamento de dependências
   - Processamento de variáveis
 
 #### **Repository Layer** (`app/repository.py`)
+
 - **Responsabilidade**: Persistência e auditoria
 - **Tecnologia**: DuckDB + pandas
 - **Funcionalidades**:
@@ -84,16 +87,19 @@ O **Data-Runner** é uma ferramenta de orquestração de pipelines de dados cons
   - Inspeção de dados
 
 #### **Connection Layer** (`app/connections.py`)
+
 - **Responsabilidade**: Gerenciamento de conexões
 - **Padrão**: Factory Pattern
 - **Suporte**: PostgreSQL, MySQL, SQL Server, Oracle, CSV, SQLite
 
 #### **Processing Layer** (`app/*_processor.py`)
+
 - **EnvironmentVariableProcessor**: Processamento de variáveis de ambiente
 - **VariableProcessor**: Processamento de variáveis configuráveis
 - **DependencyManager**: Gerenciamento de dependências entre jobs
 
 #### **Types Layer** (`app/types.py`)
+
 - **Responsabilidade**: Definição de contratos e tipos
 - **Tecnologia**: Python dataclasses + enums
 - **Funcionalidades**: Tipagem estática e validação
@@ -132,16 +138,19 @@ cp config/jobs.json.example config/jobs.json
 ### 🔧 Instalação Detalhada
 
 #### 1. Dependências Básicas
+
 ```bash
 pip install -e .
 ```
 
 #### 2. Dependências de Desenvolvimento
+
 ```bash
 pip install -e ".[dev]"
 ```
 
 #### 3. Dependências Opcionais
+
 ```bash
 # Para MySQL
 pip install -e ".[mysql]"
@@ -204,16 +213,19 @@ tests/
 ### 🎯 Tipos de Testes
 
 #### **Testes Unitários**
+
 - Testam componentes isolados
 - Mock de dependências externas
 - Rápidos e determinísticos
 
 #### **Testes de Integração**
+
 - Testam interação entre componentes
 - Usam banco de dados real (SQLite)
 - Marcados com `@pytest.mark.integration`
 
 #### **Testes de Performance**
+
 - Testam performance e escalabilidade
 - Marcados com `@pytest.mark.slow`
 - Executados separadamente
@@ -232,12 +244,12 @@ class TestJobRunner:
         # Setup do teste
         # Execução
         # Assertions
-        
+
     @pytest.mark.integration
     def test_run_job_with_sqlite(self):
         """Testa integração com SQLite"""
         # Teste de integração
-        
+
     @pytest.mark.slow
     def test_performance_large_dataset(self):
         """Teste de performance com dataset grande"""
@@ -361,12 +373,14 @@ data-runner/
 ### 🏗️ Padrões de Arquitetura
 
 #### **Separation of Concerns**
+
 - **CLI**: Apenas interface de usuário
 - **Runner**: Apenas orquestração
 - **Repository**: Apenas persistência
 - **Connections**: Apenas conexões
 
 #### **Dependency Injection**
+
 ```python
 class JobRunner:
     def __init__(self, repository: Optional[DuckDBRepository] = None):
@@ -374,6 +388,7 @@ class JobRunner:
 ```
 
 #### **Factory Pattern**
+
 ```python
 class ConnectionFactory:
     @classmethod
@@ -383,6 +398,7 @@ class ConnectionFactory:
 ```
 
 #### **Strategy Pattern**
+
 ```python
 class DatabaseConnection(ABC):
     @abstractmethod
@@ -397,6 +413,7 @@ class DatabaseConnection(ABC):
 ### 🌿 Git Workflow
 
 #### **Branches**
+
 - **`master`**: Branch principal, sempre estável
 - **`develop`**: Branch de desenvolvimento
 - **`feature/*`**: Branches para novas funcionalidades
@@ -404,6 +421,7 @@ class DatabaseConnection(ABC):
 - **`hotfix/*`**: Branches para correções urgentes
 
 #### **Commits**
+
 ```bash
 # Formato de commit
 <type>: <descrição>
@@ -426,6 +444,7 @@ docs: atualiza README com novos comandos
 ### 🔄 Processo de Desenvolvimento
 
 #### **1. Nova Funcionalidade**
+
 ```bash
 # Criar branch
 git checkout -b feature/nova-funcionalidade
@@ -449,12 +468,14 @@ git push origin feature/nova-funcionalidade
 ```
 
 #### **2. Pull Request**
+
 - Criar PR para `develop`
 - Incluir descrição detalhada
 - Referenciar issues relacionadas
 - Aguardar revisão e aprovação
 
 #### **3. Merge**
+
 - Merge para `develop`
 - Testes de integração
 - Merge para `master` (releases)
@@ -462,6 +483,7 @@ git push origin feature/nova-funcionalidade
 ### 🚀 Release Process
 
 #### **1. Preparação**
+
 ```bash
 # Atualizar versão no pyproject.toml
 # Atualizar CHANGELOG.md
@@ -470,6 +492,7 @@ git tag -a v1.1.0 -m "Release v1.1.0"
 ```
 
 #### **2. Deploy**
+
 ```bash
 # Build do pacote
 python -m build
@@ -485,6 +508,7 @@ python -m twine upload dist/*
 ### 🤝 Como Contribuir
 
 #### **1. Fork do Repositório**
+
 - Fork no GitHub
 - Clone seu fork
 - Configure remote upstream
@@ -494,12 +518,14 @@ git remote add upstream https://github.com/djonatas/data-runner.git
 ```
 
 #### **2. Desenvolvimento**
+
 - Siga os padrões de código
 - Escreva testes para novas funcionalidades
 - Mantenha cobertura de testes > 80%
 - Documente mudanças importantes
 
 #### **3. Pull Request**
+
 - Descreva claramente as mudanças
 - Inclua testes se aplicável
 - Referencie issues relacionadas
@@ -508,6 +534,7 @@ git remote add upstream https://github.com/djonatas/data-runner.git
 ### 📋 Checklist para Contribuições
 
 #### **Código**
+
 - [ ] Segue padrões de formatação (Black)
 - [ ] Importações organizadas (isort)
 - [ ] Passa em linting (flake8)
@@ -516,12 +543,14 @@ git remote add upstream https://github.com/djonatas/data-runner.git
 - [ ] Testes de integração se aplicável
 
 #### **Documentação**
+
 - [ ] README atualizado se necessário
 - [ ] COMMANDS.md atualizado se novos comandos
 - [ ] Docstrings em funções públicas
 - [ ] Comentários em código complexo
 
 #### **Testes**
+
 - [ ] Novos testes para nova funcionalidade
 - [ ] Testes existentes ainda passam
 - [ ] Cobertura de testes mantida
@@ -534,16 +563,19 @@ git remote add upstream https://github.com/djonatas/data-runner.git
 ### 🎯 Estratégias de Fork
 
 #### **1. Fork para Uso Próprio**
+
 - Mantenha sincronizado com upstream
 - Adicione funcionalidades específicas
 - Considere contribuir de volta
 
 #### **2. Fork para Distribuição**
+
 - Mantenha compatibilidade com upstream
 - Documente diferenças claramente
 - Considere mudar nome do projeto
 
 #### **3. Fork para Experimentação**
+
 - Liberdade total para mudanças
 - Não precisa manter compatibilidade
 - Ideal para POCs e experimentos
@@ -565,6 +597,7 @@ git push origin master
 ### 📝 Personalizações Comuns
 
 #### **1. Adicionar Novos Tipos de Conexão**
+
 ```python
 # app/connections.py
 class MongoDBConnection(DatabaseConnection):
@@ -577,6 +610,7 @@ ConnectionFactory._connection_classes[ConnectionType.MONGODB] = MongoDBConnectio
 ```
 
 #### **2. Adicionar Novos Tipos de Job**
+
 ```python
 # app/types.py
 class JobType(Enum):
@@ -587,6 +621,7 @@ class JobType(Enum):
 ```
 
 #### **3. Adicionar Novos Processadores**
+
 ```python
 # app/custom_processor.py
 class CustomProcessor:
@@ -609,17 +644,18 @@ class CustomProcessor:
 ### 📝 Padrões de Documentação
 
 #### **Docstrings**
+
 ```python
 def execute_query(self, sql: str) -> pd.DataFrame:
     """
     Executa uma consulta SQL no banco de dados.
-    
+
     Args:
         sql: Consulta SQL a ser executada
-        
+
     Returns:
         DataFrame com os resultados da consulta
-        
+
     Raises:
         DatabaseError: Se a consulta falhar
         ConnectionError: Se a conexão falhar
@@ -627,6 +663,7 @@ def execute_query(self, sql: str) -> pd.DataFrame:
 ```
 
 #### **Comentários**
+
 ```python
 # Processar variáveis de ambiente antes de criar conexão
 # Isso garante que ${env:VAR} seja resolvido corretamente
@@ -637,6 +674,7 @@ processed_params = env_processor.process_dict(params_dict)
 ### 🔧 Ferramentas de Documentação
 
 #### **Geração Automática**
+
 ```bash
 # Instalar sphinx (opcional)
 pip install sphinx sphinx-rtd-theme
@@ -646,6 +684,7 @@ sphinx-build -b html docs/ docs/_build/html
 ```
 
 #### **Validação de Links**
+
 ```bash
 # Instalar linkchecker
 pip install linkchecker
@@ -661,18 +700,21 @@ linkchecker docs/
 ### 🚀 Funcionalidades Futuras
 
 #### **Curto Prazo**
+
 - [ ] Suporte a MongoDB
 - [ ] Suporte a Redis
 - [ ] Interface web básica
 - [ ] Métricas e dashboards
 
 #### **Médio Prazo**
+
 - [ ] Suporte a streaming de dados
 - [ ] Integração com Apache Airflow
 - [ ] Suporte a Kubernetes
 - [ ] API REST
 
 #### **Longo Prazo**
+
 - [ ] Interface gráfica
 - [ ] Suporte a machine learning
 - [ ] Integração com cloud providers
@@ -681,18 +723,21 @@ linkchecker docs/
 ### 💡 Ideias para Contribuição
 
 #### **Para Iniciantes**
+
 - Melhorar documentação
 - Adicionar exemplos
 - Corrigir typos
 - Melhorar testes
 
 #### **Para Intermediários**
+
 - Adicionar novos tipos de conexão
 - Implementar novos processadores
 - Melhorar performance
 - Adicionar métricas
 
 #### **Para Avançados**
+
 - Refatorar arquitetura
 - Implementar cache distribuído
 - Adicionar suporte a streaming
@@ -719,28 +764,35 @@ linkchecker docs/
 
 ```markdown
 ## Descrição
+
 Descrição clara do problema ou funcionalidade.
 
 ## Ambiente
+
 - OS: [ex: Linux, macOS, Windows]
 - Python: [ex: 3.11.0]
 - Data-Runner: [ex: 1.0.0]
 
 ## Passos para Reproduzir
+
 1. ...
 2. ...
 3. ...
 
 ## Comportamento Esperado
+
 O que deveria acontecer.
 
 ## Comportamento Atual
+
 O que está acontecendo.
 
 ## Logs/Erros
 ```
+
 Traceback (most recent call last):
 ...
+
 ```
 
 ## Contexto Adicional
