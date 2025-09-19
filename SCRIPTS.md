@@ -9,11 +9,13 @@ Este documento descreve os scripts shell disponíveis para facilitar o uso do Da
 Script de instalação completa do Data-Runner com todas as dependências.
 
 **Uso:**
+
 ```bash
 ./install.sh
 ```
 
 **Funcionalidades:**
+
 - ✅ Verifica Python 3.11+
 - ✅ Cria ambiente virtual
 - ✅ Instala dependências básicas
@@ -23,6 +25,7 @@ Script de instalação completa do Data-Runner com todas as dependências.
 - ✅ Interface colorida e interativa
 
 **Dependências Opcionais:**
+
 1. MySQL (mysql-connector-python)
 2. MSSQL (pymssql)
 3. Oracle (cx_Oracle)
@@ -35,11 +38,13 @@ Script de instalação completa do Data-Runner com todas as dependências.
 Script para configuração rápida e desenvolvimento.
 
 **Uso:**
+
 ```bash
 ./setup.sh
 ```
 
 **Funcionalidades:**
+
 - ✅ Ativa ambiente virtual existente
 - ✅ Configura arquivos de exemplo
 - ✅ Cria backups dos arquivos existentes
@@ -48,6 +53,7 @@ Script para configuração rápida e desenvolvimento.
 - ✅ Mostra status do sistema
 
 **Menu de Opções:**
+
 1. Configurar arquivos de exemplo
 2. Testar configuração
 3. Mostrar status
@@ -59,11 +65,13 @@ Script para configuração rápida e desenvolvimento.
 Script principal para executar jobs do Data-Runner.
 
 **Uso Interativo:**
+
 ```bash
 ./run.sh
 ```
 
 **Uso Direto:**
+
 ```bash
 ./run.sh list                    # Listar jobs
 ./run.sh run <job_id>            # Executar job único
@@ -74,6 +82,7 @@ Script principal para executar jobs do Data-Runner.
 ```
 
 **Funcionalidades:**
+
 - ✅ Interface colorida e amigável
 - ✅ Modo interativo e modo direto
 - ✅ Lista jobs disponíveis
@@ -87,11 +96,13 @@ Script principal para executar jobs do Data-Runner.
 Script para executar testes e validações do sistema.
 
 **Uso Interativo:**
+
 ```bash
 ./test.sh
 ```
 
 **Uso Direto:**
+
 ```bash
 ./test.sh all                    # Executar todos os testes
 ./test.sh imports                # Testar importações
@@ -103,6 +114,7 @@ Script para executar testes e validações do sistema.
 ```
 
 **Funcionalidades:**
+
 - ✅ Teste de importações dos módulos
 - ✅ Validação da interface CLI
 - ✅ Verificação de arquivos de configuração
@@ -113,6 +125,7 @@ Script para executar testes e validações do sistema.
 ## 🎯 Fluxo de Uso Recomendado
 
 ### 1. Instalação Inicial
+
 ```bash
 # Clone o repositório
 git clone <repository-url>
@@ -123,6 +136,7 @@ cd data-runner
 ```
 
 ### 2. Configuração
+
 ```bash
 # Configure rapidamente
 ./setup.sh
@@ -134,6 +148,7 @@ cp config/jobs.json.example config/jobs.json
 ```
 
 ### 3. Testes
+
 ```bash
 # Execute todos os testes
 ./test.sh all
@@ -144,6 +159,7 @@ cp config/jobs.json.example config/jobs.json
 ```
 
 ### 4. Execução
+
 ```bash
 # Modo interativo
 ./run.sh
@@ -156,18 +172,21 @@ cp config/jobs.json.example config/jobs.json
 ## 🔧 Características dos Scripts
 
 ### Interface Amigável
+
 - 🎨 **Cores**: Diferentes cores para diferentes tipos de mensagem
 - 📋 **Menus**: Interfaces interativas com opções numeradas
 - ✅ **Status**: Indicadores claros de sucesso/erro
 - 📊 **Progresso**: Feedback visual durante operações
 
 ### Robustez
+
 - 🛡️ **Validações**: Verificações de ambiente e dependências
 - 🔄 **Backups**: Criação automática de backups
 - ❌ **Tratamento de Erros**: Saída em caso de erro crítico
 - 🔍 **Verificações**: Validação de arquivos e configurações
 
 ### Flexibilidade
+
 - 🎯 **Modo Interativo**: Para usuários iniciantes
 - ⚡ **Modo Direto**: Para automação e scripts
 - 🔧 **Opções**: Diferentes níveis de configuração
@@ -176,23 +195,27 @@ cp config/jobs.json.example config/jobs.json
 ## 📋 Pré-requisitos
 
 ### Sistema
+
 - **OS**: Linux, macOS, WSL (Windows)
 - **Shell**: Bash 4.0+
 - **Python**: 3.11 ou superior
 
 ### Dependências (instaladas automaticamente)
+
 - **pip**: Gerenciador de pacotes Python
 - **venv**: Módulo de ambiente virtual Python
 
 ## 🚨 Solução de Problemas
 
 ### Erro: "command not found"
+
 ```bash
 # Verifique se o script é executável
 chmod +x install.sh setup.sh run.sh test.sh
 ```
 
 ### Erro: "Python 3.11+ é necessário"
+
 ```bash
 # Instale Python 3.11+ ou use pyenv
 pyenv install 3.11.0
@@ -200,12 +223,14 @@ pyenv local 3.11.0
 ```
 
 ### Erro: "Ambiente virtual não encontrado"
+
 ```bash
 # Execute a instalação primeiro
 ./install.sh
 ```
 
 ### Erro: "data-runner não encontrado"
+
 ```bash
 # Ative o ambiente virtual
 source venv/bin/activate
@@ -216,12 +241,14 @@ source venv/bin/activate
 ## 📖 Exemplos de Uso
 
 ### Instalação Completa com Oracle
+
 ```bash
 ./install.sh
 # Escolha opção 3 (Oracle) quando solicitado
 ```
 
 ### Setup e Teste Rápido
+
 ```bash
 ./setup.sh
 # Escolha opção 2 (Testar configuração)
@@ -229,11 +256,13 @@ source venv/bin/activate
 ```
 
 ### Execução de Pipeline
+
 ```bash
 ./run.sh batch "load_csv,transform_data,create_summary"
 ```
 
 ### Verificação de Sistema
+
 ```bash
 ./test.sh imports
 ./test.sh cli
@@ -243,6 +272,7 @@ source venv/bin/activate
 ## 🎉 Conclusão
 
 Os scripts shell do Data-Runner facilitam significativamente:
+
 - **Instalação** e configuração inicial
 - **Desenvolvimento** e testes
 - **Execução** de jobs e pipelines
