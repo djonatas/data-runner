@@ -174,8 +174,7 @@
       "connection": "sqlite_dev",
       "sql": "SELECT s.sale_id, s.customer_id, s.product_id, s.quantity, s.total_amount, s.sale_date, c.name as customer_name, p.name as product_name FROM stg_sales s JOIN stg_customers c ON s.customer_id = c.id JOIN stg_products p ON s.product_id = p.id;",
       "targetTable": "fact_sales",
-      "dependencies": ["load_sales_csv", "load_customers_csv", "load_products_csv"],
-      "validation": "validationJobId"
+      "dependencies": ["load_sales_csv", "load_customers_csv", "load_products_csv"]
     },
     {
       "queryId": "create_daily_summary",

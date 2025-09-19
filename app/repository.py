@@ -52,6 +52,28 @@ class DuckDBRepository:
         
         with duckdb.connect(self.db_path) as conn:
             conn.execute(create_audit_sql)
+            # Migrar tabela existente se necessário
+            self._migrate_audit_table(conn)
+    
+    def _migrate_audit_table(self, conn):
+        """
+        Migra tabela de auditoria para adicionar colunas novas
+        """
+        try:
+            # Verificar se as colunas existem
+            result = conn.execute("PRAGMA table_info(audit_job_runs)").fetchall()
+            existing_columns = [row[1] for row in result]
+            
+            # Adicionar colunas que não existem
+            if 'validation_file' not in existing_columns:
+                conn.execute("ALTER TABLE audit_job_runs ADD COLUMN validation_file VARCHAR")
+            
+            if 'validation_result' not in existing_columns:
+                conn.execute("ALTER TABLE audit_job_runs ADD COLUMN validation_result VARCHAR")
+                
+        except Exception as e:
+            # Se der erro na migração, ignora (pode ser tabela nova)
+            pass
     
     def save_dataframe(self, df: pd.DataFrame, table_name: str, replace: bool = True):
         """
